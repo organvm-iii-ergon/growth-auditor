@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import ApiKeyInline from "@/components/ApiKeyInline";
+import AuditPresets from "@/components/AuditPresets";
 import { getStoredApiKey } from "@/services/aiProvider";
 
 export default function ComparePage() {
@@ -79,6 +80,12 @@ export default function ComparePage() {
 
         <div className="card" style={{ maxWidth: "700px" }}>
           <form onSubmit={handleSubmit}>
+            <AuditPresets
+              onSelect={(preset) => {
+                setBusinessType(preset.businessType);
+                setGoals(preset.goals);
+              }}
+            />
             <div className="form-group">
               <label htmlFor="url-0">URL 1</label>
               <input

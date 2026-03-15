@@ -5,6 +5,7 @@ import { getCosmicAuditPrompt } from "@/services/promptTemplates";
 import { captureScreenshot } from "@/services/vision";
 import { getPageSpeedInsights } from "@/services/pagespeed";
 import { saveAudit } from "@/lib/db";
+import { sendAuditWebhook } from "@/services/webhook";
 import crypto from "crypto";
 import { auth } from "@/auth";
 import { createRateLimiter, getClientIP } from "@/lib/rate-limit";
@@ -105,6 +106,15 @@ export async function POST(request: Request) {
         markdownAudit: parsedResult.markdownAudit,
         scores: JSON.stringify(parsedResult.scores || {})
       });
+      // Fire webhook in background after successful save
+      sendAuditWebhook({
+        id: auditId,
+        link,
+        businessType,
+        goals,
+        scores: parsedResult.scores || {},
+        userEmail: session?.user?.email || undefined,
+      }).catch(() => {});
     } catch (dbError) {
       console.error("Failed to save audit to DB:", dbError);
       // We don't fail the request if DB fails, just log it

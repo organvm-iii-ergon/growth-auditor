@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import { getAuditById } from "@/lib/db";
+import ShareButtons from "@/components/ShareButtons";
 
 interface Scores {
   communication?: number;
@@ -98,6 +99,13 @@ export default async function SharePage({ params }: { params: Promise<{ id: stri
         >
           Overall Score: {avgScore}/100
         </p>
+        <div style={{ marginTop: "1.5rem" }}>
+          <ShareButtons
+            url={`/share/${id}`}
+            title={`Growth Audit: ${audit.link}`}
+            score={avgScore}
+          />
+        </div>
       </header>
 
       {/* Score Bars */}

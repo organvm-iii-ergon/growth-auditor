@@ -218,6 +218,8 @@ export default function AdminPage() {
     { key: "logoUrl", label: "Logo URL", type: "text", placeholder: "https://yoursite.com/logo.png", description: "URL to your logo image" },
     { key: "faviconUrl", label: "Favicon URL", type: "text", placeholder: "https://yoursite.com/favicon.ico", description: "URL to your favicon" },
     { key: "customCss", label: "Custom CSS", type: "text", placeholder: ".my-class { ... }", description: "Additional CSS to apply to all pages" },
+    { key: "webhookUrl", label: "Webhook URL", type: "text", placeholder: "https://hooks.slack.com/services/...", description: "URL to receive audit and lead event notifications" },
+    { key: "webhookSecret", label: "Webhook Secret", type: "password", placeholder: "whsec_...", description: "Shared secret for webhook signature verification (future)" },
   ];
 
   return (

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import ApiKeyInline from "@/components/ApiKeyInline";
+import AuditPresets from "@/components/AuditPresets";
 import { getStoredApiKey } from "@/services/aiProvider";
 
 // A simple moon phase calculation based on known new moon date
@@ -133,6 +134,11 @@ export default function HomePage() {
         
         <div className="card" id="audit-form">
           <form onSubmit={handleSubmit}>
+            <AuditPresets
+              onSelect={(preset) =>
+                setFormData({ ...formData, businessType: preset.businessType, goals: preset.goals })
+              }
+            />
             <div className="form-group">
               <label htmlFor="link">URL / Social Handle</label>
               <input 

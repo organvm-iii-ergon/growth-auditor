@@ -8,6 +8,7 @@ import UpsellCard from "@/components/UpsellCard";
 import CosmicChart from "@/components/CosmicChart";
 import ChatBox from "@/components/ChatBox";
 import EmailGate from "@/components/EmailGate";
+import ShareButtons from "@/components/ShareButtons";
 import { getStoredApiKey, getStoredProvider } from "@/services/aiProvider";
 
 function parseScoresFromText(text: string): { communication: number; aesthetic: number; drive: number; structure: number } | null {
@@ -256,6 +257,17 @@ export default function ResultsPage() {
         <button onClick={downloadPDF} disabled={isDownloading} className="btn btn-secondary" style={{ marginTop: "1.5rem", maxWidth: "250px", margin: "1.5rem auto 0" }}>
           {isDownloading ? "Generating PDF..." : "Download as PDF"}
         </button>
+        {auditId && scores && (
+          <div style={{ marginTop: "1rem" }}>
+            <ShareButtons
+              url={`/share/${auditId}`}
+              title="Cosmic Growth Audit"
+              score={Math.round(
+                (scores.communication + scores.aesthetic + scores.drive + scores.structure) / 4
+              )}
+            />
+          </div>
+        )}
       </div>
 
       <div className="container" style={{ width: "100%", maxWidth: "900px" }}>
