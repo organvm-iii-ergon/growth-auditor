@@ -7,24 +7,24 @@ import { getPageSpeedInsights } from "@/services/pagespeed";
 import { saveAudit } from "@/lib/db";
 import crypto from "crypto";
 import { auth } from "@/auth";
-import { LRUCache } from "lru-cache";
+import { createRateLimiter, getClientIP } from "@/lib/rate-limit";
 
-// Simple IP-based rate limiter (5 per hour)
-const rateLimit = new LRUCache({
-  max: 500, // max 500 IPs
-  ttl: 1000 * 60 * 60, // 1 hour
-});
+const rateLimiter = createRateLimiter({ max: 5, windowMs: 60 * 60 * 1000 });
 
 export async function POST(request: Request) {
   try {
-    // 0. Rate limiting (using a generic IP if headers fail)
-    const ip = request.headers.get("x-forwarded-for") || "127.0.0.1";
-    const currentUsage = (rateLimit.get(ip) as number) || 0;
-    
-    if (currentUsage >= 5) {
-      return NextResponse.json({ error: "Rate limit exceeded. Please wait before generating more audits." }, { status: 429 });
+    // 0. Rate limiting
+    const ip = getClientIP(request);
+    const { limited, remaining } = rateLimiter.check(ip);
+
+    if (limited) {
+      return NextResponse.json(
+        { error: "Rate limit exceeded. Please wait before generating more audits." },
+        { status: 429, headers: { "X-RateLimit-Remaining": "0" } }
+      );
     }
-    rateLimit.set(ip, currentUsage + 1);
+
+    void remaining; // Available for response headers if needed
 
     // 1. Extract API Key from Authorization header securely
     const authHeader = request.headers.get("Authorization");

@@ -12,9 +12,13 @@ Growth Auditor AI is a "cosmic" growth marketing tool that audits websites and s
 npm run dev          # Start dev server at http://localhost:3000
 npm run build        # Production build
 npm run lint         # ESLint 9 with Next.js rules
-npm run test         # Vitest suite (once)
+npm run test         # Vitest unit/integration suite (once)
 npm run test:watch   # Vitest in watch mode
-npx vitest run src/app/api/audit/route.test.ts  # Single test file
+npm run test:e2e     # Playwright E2E tests (starts dev server automatically)
+npm run test:e2e:ui  # Playwright with interactive UI
+npx vitest run src/app/api/audit/route.test.ts  # Single unit test file
+vercel              # Deploy to Vercel (preview)
+vercel --prod       # Deploy to production
 ```
 
 ## Tech Stack
@@ -26,7 +30,9 @@ npx vitest run src/app/api/audit/route.test.ts  # Single test file
 - **Auth**: NextAuth v5 (beta) with Credentials provider — shared password, admin determined by email list
 - **Payments**: Stripe (optional, disabled when no key)
 - **Email**: Resend (optional), **Analytics**: PostHog (optional)
-- **Testing**: Vitest + React Testing Library + jsdom
+- **Testing**: Vitest + React Testing Library + jsdom (unit/integration), Playwright (E2E)
+- **Error Monitoring**: Sentry (optional, enabled when `NEXT_PUBLIC_SENTRY_DSN` is set)
+- **CI**: GitHub Actions — lint, test, build, E2E on every push/PR to main
 - **Styling**: Vanilla CSS with CSS variables (cosmic/deep-space theme — navy, electric blue, cosmic purple). Uses glassmorphism and gradient patterns defined in `globals.css`
 
 ## Architecture
@@ -34,7 +40,7 @@ npx vitest run src/app/api/audit/route.test.ts  # Single test file
 ### Request Flow (Core Audit)
 
 `POST /api/audit` orchestrates the entire pipeline:
-1. Rate-limits by IP (5/hour via LRU cache)
+1. Rate-limits by IP (5/hour via `createRateLimiter` in `src/lib/rate-limit.ts`)
 2. Validates Gemini API key from `Authorization: Bearer` header (users provide their own key)
 3. Parallel data gathering: `scrapeWebsite()` + `captureScreenshot()` + `getPageSpeedInsights()`
 4. Sends scraped content + screenshot + Lighthouse scores to Gemini with structured JSON output
