@@ -3,6 +3,7 @@ import "./globals.css";
 import Link from "next/link";
 import { auth, signIn, signOut } from "@/auth";
 import { PostHogProvider } from "@/providers/PostHogProvider";
+import { getAllConfig } from "@/lib/config";
 
 export const metadata: Metadata = {
   title: {
@@ -31,14 +32,26 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const session = await auth();
+  const config = getAllConfig();
+  const { appName, primaryColor, accentColor, faviconUrl, customCss } = config;
 
   return (
     <html lang="en">
+      {faviconUrl && <link rel="icon" href={faviconUrl} />}
+      {(primaryColor || accentColor) && (
+        <style dangerouslySetInnerHTML={{ __html: `
+          :root {
+            ${primaryColor ? `--primary: ${primaryColor};` : ''}
+            ${accentColor ? `--secondary: ${accentColor}; --accent: ${accentColor};` : ''}
+          }
+        `}} />
+      )}
+      {customCss && <style dangerouslySetInnerHTML={{ __html: customCss }} />}
       <body>
         <PostHogProvider>
           <div className="container">
             <nav className="nav">
-              <Link href="/" className="logo">Growth Auditor.ai</Link>
+              <Link href="/" className="logo">{appName || "Growth Auditor.ai"}</Link>
               <div className="nav-links">
                 <Link href="/" className="nav-link">Audit</Link>
                 <Link href="/about" className="nav-link">Methodology</Link>
