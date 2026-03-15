@@ -7,6 +7,7 @@ import Loader from "@/components/Loader";
 import UpsellCard from "@/components/UpsellCard";
 import CosmicChart from "@/components/CosmicChart";
 import ChatBox from "@/components/ChatBox";
+import EmailGate from "@/components/EmailGate";
 
 export default function ResultsPage() {
   const [audit, setAudit] = useState("");
@@ -14,6 +15,7 @@ export default function ResultsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [isDownloading, setIsDownloading] = useState(false);
+  const [auditId, setAuditId] = useState<string | undefined>();
   const reportRef = useRef<HTMLDivElement>(null);
 
   const downloadPDF = async () => {
@@ -85,6 +87,7 @@ export default function ResultsPage() {
 
         setAudit(result.audit);
         setScores(result.scores);
+        if (result.id) setAuditId(result.id);
         // Cache the successful result
         sessionStorage.setItem("current_audit_result", result.audit);
         sessionStorage.setItem("current_audit_scores", JSON.stringify(result.scores));
@@ -154,11 +157,13 @@ export default function ResultsPage() {
             </div>
           )}
 
-          <div className="card" style={{ maxWidth: "none", marginBottom: "4rem", padding: "4rem" }}>
-            <div className="audit-content">
-              <ReactMarkdown>{audit}</ReactMarkdown>
+          <EmailGate auditId={auditId}>
+            <div className="card" style={{ maxWidth: "none", marginBottom: "4rem", padding: "4rem" }}>
+              <div className="audit-content">
+                <ReactMarkdown>{audit}</ReactMarkdown>
+              </div>
             </div>
-          </div>
+          </EmailGate>
         </div>
 
         <ChatBox auditContext={audit} />
