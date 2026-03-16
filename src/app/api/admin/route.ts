@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { getAudits, getLeads } from "@/lib/db";
+import { getEnvStatus } from "@/lib/env";
 
 export async function GET(req: Request) {
   const session = await auth();
@@ -66,6 +67,11 @@ export async function GET(req: Request) {
         totalUsers: uniqueEmails.size,
         auditsLast30Days: recentAudits.length,
       });
+    }
+
+    if (type === "env") {
+      const envStatus = getEnvStatus();
+      return NextResponse.json({ envStatus });
     }
 
     return NextResponse.json({ error: "Invalid type parameter" }, { status: 400 });

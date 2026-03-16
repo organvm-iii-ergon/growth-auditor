@@ -50,6 +50,8 @@ export default function AdminPage() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   
+  const [envStatus, setEnvStatus] = useState<Array<{ key: string; label: string; configured: boolean; category: string }>>([]);
+
   const [saving, setSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
 
@@ -70,7 +72,20 @@ export default function AdminPage() {
       }
     };
     checkAdmin();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const loadEnvStatus = async () => {
+    try {
+      const res = await fetch("/api/admin?type=env");
+      if (res.ok) {
+        const data = await res.json();
+        setEnvStatus(data.envStatus || []);
+      }
+    } catch (e) {
+      console.error("Failed to load env status:", e);
+    }
+  };
 
   const loadOverview = async () => {
     try {
@@ -88,6 +103,7 @@ export default function AdminPage() {
     } catch (e) {
       console.error("Failed to load overview:", e);
     }
+    await loadEnvStatus();
   };
 
   const loadConfig = async () => {
@@ -269,6 +285,33 @@ export default function AdminPage() {
                 <p style={{ color: "var(--text-muted)" }}>Last 30 Days</p>
               </div>
             </div>
+
+            {envStatus.length > 0 && (
+              <div className="card" style={{ marginBottom: "2rem" }}>
+                <h2 style={{ color: "var(--secondary)", marginBottom: "1rem" }}>Environment Status</h2>
+                <p style={{ color: "var(--text-muted)", marginBottom: "1rem", fontSize: "0.85rem" }}>
+                  {envStatus.filter(e => e.configured).length} of {envStatus.length} variables configured
+                </p>
+                {(["database", "ai", "payments", "email", "analytics", "monitoring", "auth"] as const).map((cat) => {
+                  const items = envStatus.filter(e => e.category === cat);
+                  if (items.length === 0) return null;
+                  return (
+                    <div key={cat} style={{ marginBottom: "1rem" }}>
+                      <h3 style={{ color: "var(--text-muted)", fontSize: "0.8rem", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "0.5rem" }}>{cat}</h3>
+                      {items.map((env) => (
+                        <div key={env.key} style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.35rem 0", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                          <span style={{ color: env.configured ? "#22c55e" : "#ef4444", fontSize: "1rem" }}>
+                            {env.configured ? "\u2713" : "\u2717"}
+                          </span>
+                          <span style={{ flex: 1 }}>{env.label}</span>
+                          <span style={{ color: "var(--text-muted)", fontSize: "0.75rem", fontFamily: "monospace" }}>{env.key}</span>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
 
             <div className="card">
               <h2 style={{ color: "var(--secondary)", marginBottom: "1rem" }}>Recent Activity</h2>

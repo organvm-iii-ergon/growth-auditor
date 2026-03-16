@@ -59,6 +59,7 @@ export default async function RootLayout({
                 <Link href="/examples" className="nav-link">Examples</Link>
                 <Link href="/history" className="nav-link">History</Link>
                 <Link href="/settings" className="nav-link">Settings</Link>
+                <Link href="/docs" className="nav-link">Docs</Link>
                 {session?.user && (
                   <Link href="/admin" className="nav-link">Admin</Link>
                 )}
