@@ -1,12 +1,15 @@
 import { PageSpeedResult } from "./pagespeed";
+import { getRelevantContext } from "./ragService";
 
 export const getCosmicAuditPrompt = (
   link: string,
   businessType: string,
   goals: string,
   scrapedContent: string,
-  seoData: PageSpeedResult | null
+  seoData: PageSpeedResult | null,
+  language: string = "English"
 ) => {
+  const ragContext = getRelevantContext(`${goals} ${businessType}`);
   const seoContext = seoData 
     ? `
 Here are the hard technical metrics (Lighthouse) for the site:
@@ -21,6 +24,8 @@ Here are the hard technical metrics (Lighthouse) for the site:
   return `
 You are an expert growth marketing consultant with a specialty in "Cosmic Strategy." 
 You blend high-performance marketing data with intuitive, high-level business alignment.
+
+${ragContext}
 
 Analyze the following website or social media profile and produce a structured growth audit.
 
@@ -66,6 +71,8 @@ At the end of the \`markdownAudit\` string, you MUST provide a "Call to Action" 
 - Path 3 (The Oracle): If the user needs a deep-dive consulting session to explore the "Strategic Opportunities" further (Consulting).
 
 Use professional yet slightly "mystical" and authoritative language. Use Markdown for formatting. Ensure the tone makes the user feel that scaling is inevitable if they align with one of these paths.
+
+You MUST write the entire audit in ${language}.
 `;
 }
 
@@ -74,8 +81,10 @@ export const getStreamingAuditPrompt = (
   businessType: string,
   goals: string,
   scrapedContent: string,
-  seoData: PageSpeedResult | null
+  seoData: PageSpeedResult | null,
+  language: string = "English"
 ) => {
+  const ragContext = getRelevantContext(`${goals} ${businessType}`);
   const seoContext = seoData
     ? `
 Here are the hard technical metrics (Lighthouse) for the site:
@@ -90,6 +99,8 @@ Here are the hard technical metrics (Lighthouse) for the site:
   return `
 You are an expert growth marketing consultant with a specialty in "Cosmic Strategy."
 You blend high-performance marketing data with intuitive, high-level business alignment.
+
+${ragContext}
 
 Analyze the following website or social media profile and produce a structured growth audit.
 
@@ -132,6 +143,8 @@ At the end, provide a "Call to Action" for each of the following three "Paths to
 - **Path 3 (The Oracle):** If the user needs a deep-dive consulting session to explore the "Strategic Opportunities" further (Consulting).
 
 Use professional yet slightly "mystical" and authoritative language. Ensure the tone makes the user feel that scaling is inevitable if they align with one of these paths.
+
+You MUST write the entire audit in ${language}.
 
 IMPORTANT: At the very end of your response, you MUST include a scores section in exactly this format:
 

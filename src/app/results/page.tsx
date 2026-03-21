@@ -39,6 +39,7 @@ export default function ResultsPage() {
   const [isDownloading, setIsDownloading] = useState(false);
   const [auditId, setAuditId] = useState<string | undefined>();
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [feedbackSent, setFeedbackSent] = useState(false);
   const reportRef = useRef<HTMLDivElement>(null);
   const { data: session } = useSession();
 
@@ -52,6 +53,20 @@ export default function ResultsPage() {
         .catch(() => {});
     }
   }, [session]);
+
+  const handleFeedback = async (score: number) => {
+    if (!auditId) return;
+    try {
+      await fetch("/api/audit/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ auditId, score }),
+      });
+      setFeedbackSent(true);
+    } catch (err) {
+      console.error("Failed to send feedback", err);
+    }
+  };
 
   const downloadPDF = async () => {
     if (!reportRef.current) return;
@@ -306,9 +321,21 @@ export default function ResultsPage() {
           )}
 
           <EmailGate auditId={auditId}>
-            <div className="card" style={{ maxWidth: "none", marginBottom: "4rem", padding: "4rem" }}>
+            <div className="card" style={{ maxWidth: "none", marginBottom: "2rem", padding: "4rem" }}>
               <div className="audit-content">
                 <ReactMarkdown>{audit}</ReactMarkdown>
+              </div>
+              
+              <div style={{ marginTop: "4rem", paddingTop: "2rem", borderTop: "1px solid rgba(255,255,255,0.05)", textAlign: "center" }}>
+                <p style={{ fontSize: "0.9rem", color: "var(--text-muted)", marginBottom: "1rem" }}>
+                  {feedbackSent ? "Thank you for aligning our data! ✦" : "Was this cosmic alignment helpful?"}
+                </p>
+                {!feedbackSent && (
+                  <div style={{ display: "flex", justifyContent: "center", gap: "1.5rem" }}>
+                    <button onClick={() => handleFeedback(1)} className="btn-secondary" style={{ padding: "0.5rem 1rem", fontSize: "1.2rem", background: "rgba(255,255,255,0.05)" }}>👍</button>
+                    <button onClick={() => handleFeedback(0)} className="btn-secondary" style={{ padding: "0.5rem 1rem", fontSize: "1.2rem", background: "rgba(255,255,255,0.05)" }}>👎</button>
+                  </div>
+                )}
               </div>
             </div>
           </EmailGate>

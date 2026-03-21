@@ -44,15 +44,16 @@ describe('SettingsPage', () => {
     
     fireEvent.change(screen.getByLabelText(/Google Gemini API Key/i), { target: { value: 'new-gemini-key' } });
     
-    fireEvent.click(screen.getByRole('button', { name: /Save Configuration/i }));
-    
+    const saveButton = screen.getByText(/Save Configuration/i);
+    fireEvent.click(saveButton);
+
     expect(localStorage.getItem('gemini_api_key')).toBe('new-gemini-key');
-    expect(screen.getByRole('button')).toHaveTextContent('Configuration Saved! ✓');
-    
+    expect(saveButton).toHaveTextContent('Configuration Saved! ✓');
+
     act(() => {
       vi.advanceTimersByTime(3000);
     });
-    
-    expect(screen.getByRole('button')).toHaveTextContent('Save Configuration');
+
+    expect(saveButton).toHaveTextContent('Save Configuration');
   });
 });

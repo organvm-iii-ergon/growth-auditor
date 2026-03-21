@@ -75,6 +75,20 @@ export default function SettingsPage() {
     }
   };
 
+  const handleDeleteData = async () => {
+    if (!confirm("Are you sure? This will permanently erase ALL your audits, schedules, and settings. This cannot be undone.")) return;
+    try {
+      const res = await fetch("/api/settings/data/forget", { method: "DELETE" });
+      if (res.ok) {
+        alert("Your data has been erased. You will now be signed out.");
+        window.location.href = "/";
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Failed to delete data.");
+    }
+  };
+
   return (
     <main className="main">
       <div className="hero">
@@ -159,6 +173,18 @@ export default function SettingsPage() {
             </button>
           </div>
         )}
+
+        <div style={{ marginTop: "2rem", paddingTop: "2rem", borderTop: "1px solid rgba(255,255,255,0.1)" }}>
+          <h3 style={{ marginBottom: "1rem" }}>Data & Privacy</h3>
+          <div style={{ display: "flex", gap: "1rem" }}>
+            <a href="/api/settings/data/export" className="btn btn-secondary" style={{ flex: 1, textAlign: "center" }}>
+              Export My Data (JSON)
+            </a>
+            <button onClick={handleDeleteData} className="btn" style={{ flex: 1, backgroundColor: "transparent", color: "var(--accent)", border: "1px solid var(--accent)" }}>
+              Forget Me (Delete All)
+            </button>
+          </div>
+        </div>
 
         <p
           style={{

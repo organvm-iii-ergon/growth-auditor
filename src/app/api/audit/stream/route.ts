@@ -11,6 +11,8 @@ import { createAIModel, type AIProviderType } from "@/services/aiModelFactory";
 
 const rateLimiter = createRateLimiter({ max: 5, windowMs: 60 * 60 * 1000 });
 
+export const runtime = "edge";
+
 export async function POST(request: Request) {
   try {
     // 0. Rate limiting

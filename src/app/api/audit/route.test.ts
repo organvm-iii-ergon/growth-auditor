@@ -41,6 +41,10 @@ vi.mock('@/auth', () => ({
   auth: vi.fn().mockResolvedValue({ user: { email: 'test@example.com', name: 'Test User' } }),
 }));
 
+vi.mock('@/services/evaluator', () => ({
+  evaluateAudit: vi.fn().mockResolvedValue({ score: 90, feedback: "Good", passed: true }),
+}));
+
 import { POST } from './route';
 import { createAIModel } from '@/services/aiModelFactory';
 
@@ -49,9 +53,9 @@ describe('API Route /api/audit', () => {
     const request = new Request('http://localhost/api/audit', {
       method: 'POST',
       body: JSON.stringify({
-        link: 'test.com',
+        link: 'https://test.com',
         businessType: 'test',
-        goals: 'test',
+        goals: 'test goals',
       }),
     });
 
@@ -68,7 +72,7 @@ describe('API Route /api/audit', () => {
         'Authorization': 'Bearer valid-key', // allow-secret
       },
       body: JSON.stringify({
-        link: 'test.com',
+        link: 'https://test.com',
         // Missing businessType and goals
       }),
     });
@@ -76,7 +80,7 @@ describe('API Route /api/audit', () => {
     const response = await POST(request);
     expect(response.status).toBe(400);
     const data = await response.json();
-    expect(data.error).toContain('Missing required fields');
+    expect(data.error).toContain('Invalid alignment data provided');
   });
 
   it('returns 429 after 5 requests from the same IP', async () => {
@@ -88,9 +92,9 @@ describe('API Route /api/audit', () => {
         'x-forwarded-for': '192.168.1.100',
       },
       body: JSON.stringify({
-        link: 'test.com',
-        businessType: 'test',
-        goals: 'test',
+        link: 'https://test.com',
+        businessType: 'SaaS',
+        goals: 'Increase conversion',
       }),
     });
 
@@ -115,9 +119,9 @@ describe('API Route /api/audit', () => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        link: 'test.com',
-        businessType: 'test',
-        goals: 'test',
+        link: 'https://test.com',
+        businessType: 'SaaS',
+        goals: 'Increase conversion',
       }),
     });
 
@@ -142,9 +146,9 @@ describe('API Route /api/audit', () => {
         'X-AI-Provider': 'openai',
       },
       body: JSON.stringify({
-        link: 'test.com',
-        businessType: 'test',
-        goals: 'test',
+        link: 'https://test.com',
+        businessType: 'Agency',
+        goals: 'Scale team',
       }),
     });
 
