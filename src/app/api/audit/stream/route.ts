@@ -95,7 +95,7 @@ export async function POST(request: Request) {
       },
     });
 
-    return result.toDataStreamResponse();
+    return result.toTextStreamResponse();
   } catch (error: unknown) {
     console.error("Stream Error:", error);
     return new Response(JSON.stringify({ error: "Portal interference." }), { status: 500 });

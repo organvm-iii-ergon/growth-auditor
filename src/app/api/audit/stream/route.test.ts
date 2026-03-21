@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { POST } from "./route";
 
 const mockStreamText = vi.fn().mockReturnValue({
-  toDataStreamResponse: vi.fn().mockReturnValue(new Response(new ReadableStream())),
+  toTextStreamResponse: vi.fn().mockReturnValue(new Response(new ReadableStream())),
 });
 
 vi.mock("ai", () => ({
