@@ -15,7 +15,7 @@ export async function GET() {
     // Check DB
     await getAudits();
     healthData.services.database = "connected";
-  } catch (err) {
+  } catch {
     healthData.services.database = "error";
     healthData.status = "degraded";
   }

@@ -16,20 +16,20 @@ describe("TeamsPage", () => {
   });
 
   it("renders teams list", async () => {
-    (global.fetch as any).mockResolvedValue({
+    vi.mocked(global.fetch).mockResolvedValue({
       ok: true,
       json: async () => [{ id: "1", name: "Alpha Team", ownerEmail: "test@example.com" }],
-    });
+    } as unknown as Response);
 
     render(<TeamsPage />);
     expect(await screen.findByText("Alpha Team")).toBeInTheDocument();
   });
 
   it("creates a new team", async () => {
-    (global.fetch as any)
-      .mockResolvedValueOnce({ ok: true, json: async () => [] }) // Initial fetch
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ id: "2" }) }) // POST
-      .mockResolvedValueOnce({ ok: true, json: async () => [{ id: "2", name: "Beta Team", ownerEmail: "test@example.com" }] }); // Refetch
+    vi.mocked(global.fetch)
+      .mockResolvedValueOnce({ ok: true, json: async () => [] } as unknown as Response) // Initial fetch
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ id: "2" }) } as unknown as Response) // POST
+      .mockResolvedValueOnce({ ok: true, json: async () => [{ id: "2", name: "Beta Team", ownerEmail: "test@example.com" }] } as unknown as Response); // Refetch
 
     render(<TeamsPage />);
     

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, type Mock } from "vitest";
 import { GET, POST } from "./route";
 import * as db from "@/lib/db";
 import { auth } from "@/auth";
@@ -17,13 +17,13 @@ describe("Teams API", () => {
 
   beforeEach(() => {
     vi.resetAllMocks();
-    (auth as any).mockResolvedValue({ user: { email: mockEmail } });
+    (auth as unknown as Mock).mockResolvedValue({ user: { email: mockEmail } });
   });
 
   describe("GET", () => {
     it("returns teams for the user", async () => {
       const mockTeams = [{ id: "1", name: "Team A", ownerEmail: mockEmail }];
-      (db.getTeamsByEmail as any).mockResolvedValue(mockTeams);
+      vi.mocked(db.getTeamsByEmail).mockResolvedValue(mockTeams);
 
       const res = await GET();
       expect(res.status).toBe(200);
@@ -35,7 +35,7 @@ describe("Teams API", () => {
   describe("POST", () => {
     it("creates a new team", async () => {
       const payload = { name: "New Team" };
-      (db.createTeam as any).mockResolvedValue({ id: "2", ...payload, ownerEmail: mockEmail });
+      vi.mocked(db.createTeam).mockResolvedValue({ id: "2", ...payload, ownerEmail: mockEmail });
 
       const req = new Request("http://localhost/api/teams", {
         method: "POST",

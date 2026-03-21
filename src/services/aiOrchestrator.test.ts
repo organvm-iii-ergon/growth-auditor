@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { orchestrateCosmicAudit } from "./aiOrchestrator";
+import { orchestrateCosmicAudit, OrchestratedAuditRequest } from "./aiOrchestrator";
 import { generateText } from "ai";
 import * as evaluator from "./evaluator";
 
@@ -32,7 +32,7 @@ describe("aiOrchestrator service", () => {
     vi.clearAllMocks();
   });
 
-  const mockReq: any = {
+  const mockReq: OrchestratedAuditRequest = {
     link: "https://test.com",
     businessType: "SaaS",
     goals: "Growth",
@@ -42,10 +42,10 @@ describe("aiOrchestrator service", () => {
   };
 
   it("orchestrates a successful audit flow in one iteration", async () => {
-    (generateText as any).mockResolvedValue({
+    vi.mocked(generateText).mockResolvedValue({
       text: JSON.stringify({ markdownAudit: "Audit", scores: { communication: 90 } }),
-    });
-    (evaluator.evaluateAudit as any).mockResolvedValue({ score: 90, passed: true });
+    } as Awaited<ReturnType<typeof generateText>>);
+    vi.mocked(evaluator.evaluateAudit).mockResolvedValue({ score: 90, passed: true, feedback: "Excellent" });
 
     const result = await orchestrateCosmicAudit(mockReq);
     expect(result.iterations).toBe(1);
@@ -54,11 +54,11 @@ describe("aiOrchestrator service", () => {
   });
 
   it("regenerates once if initial evaluation fails", async () => {
-    (generateText as any)
-      .mockResolvedValueOnce({ text: JSON.stringify({ markdownAudit: "Bad", scores: {} }) })
-      .mockResolvedValueOnce({ text: JSON.stringify({ markdownAudit: "Better", scores: {} }) });
-    
-    (evaluator.evaluateAudit as any).mockResolvedValue({ score: 40, passed: false, feedback: "Improve" });
+    vi.mocked(generateText)
+      .mockResolvedValueOnce({ text: JSON.stringify({ markdownAudit: "Bad", scores: {} }) } as Awaited<ReturnType<typeof generateText>>)
+      .mockResolvedValueOnce({ text: JSON.stringify({ markdownAudit: "Better", scores: {} }) } as Awaited<ReturnType<typeof generateText>>);
+
+    vi.mocked(evaluator.evaluateAudit).mockResolvedValue({ score: 40, passed: false, feedback: "Improve" });
 
     const result = await orchestrateCosmicAudit(mockReq);
     expect(result.iterations).toBe(2);

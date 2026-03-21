@@ -34,7 +34,7 @@ class Star {
     }
   }
 
-  show(speed: number) {
+  show(_speed: number) {
     const sx = this.p.map(this.x / this.z, 0, 1, 0, this.p.width / 2);
     const sy = this.p.map(this.y / this.z, 0, 1, 0, this.p.height / 2);
 

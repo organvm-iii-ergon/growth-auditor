@@ -31,7 +31,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { isPro, isAdmin } = session.user as any;
+    const { isPro, isAdmin } = session.user;
     if (!isPro && !isAdmin) {
       return NextResponse.json({ error: "Pro subscription required for custom branding" }, { status: 403 });
     }

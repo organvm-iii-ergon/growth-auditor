@@ -30,7 +30,7 @@ export function PostHogProvider({ children }: { children: React.ReactNode }) {
  * DEEP TELEMETRY UTILITY
  * Implements the "Latent Evaluation" requirement of the Covenant.
  */
-export const trackIcebergInteraction = (feature: string, metadata: Record<string, any> = {}) => {
+export const trackIcebergInteraction = (feature: string, metadata: Record<string, unknown> = {}) => {
   posthog.capture(`iceberg_tip_interaction`, {
     feature,
     ...metadata,

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Loader from "@/components/Loader";
 import type { TeamMemberRecord } from "@/lib/db";
@@ -14,7 +14,7 @@ export default function TeamDetailsPage({ params }: { params: { id: string } }) 
   const [newMemberRole, setNewMemberRole] = useState<"admin" | "member">("member");
   const [error, setError] = useState("");
 
-  const fetchMembers = async () => {
+  const fetchMembers = useCallback(async () => {
     try {
       const res = await fetch(`/api/teams/${id}/members`);
       if (!res.ok) throw new Error("Failed to fetch members");
@@ -26,11 +26,11 @@ export default function TeamDetailsPage({ params }: { params: { id: string } }) 
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
 
   useEffect(() => {
     fetchMembers();
-  }, [id]);
+  }, [fetchMembers]);
 
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,9 +52,9 @@ export default function TeamDetailsPage({ params }: { params: { id: string } }) 
 
       setNewMemberEmail("");
       fetchMembers();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      setError(err.message);
+      setError(err instanceof Error ? err.message : "Failed to invite member");
     } finally {
       setInviting(false);
     }

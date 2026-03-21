@@ -1,3 +1,4 @@
+import React from "react";
 import { render } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 import ScoreTrendChart from "./ScoreTrendChart";
@@ -7,7 +8,7 @@ vi.mock("recharts", async () => {
   const OriginalModule = await import("recharts");
   return {
     ...OriginalModule,
-    ResponsiveContainer: ({ children }: any) => (
+    ResponsiveContainer: ({ children }: { children: React.ReactNode }) => (
       <div style={{ width: 800, height: 400 }}>{children}</div>
     ),
   };
@@ -26,7 +27,7 @@ describe("ScoreTrendChart Component", () => {
   ];
 
   it("renders without crashing with valid data", () => {
-    const { container } = render(<ScoreTrendChart data={mockData as any} />);
+    const { container } = render(<ScoreTrendChart data={mockData} />);
     expect(container.firstChild).toBeInTheDocument();
   });
 

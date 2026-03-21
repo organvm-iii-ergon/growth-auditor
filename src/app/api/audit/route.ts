@@ -51,7 +51,7 @@ export async function POST(request: Request) {
 
     const { link, businessType, goals, teamId } = validation.data;
     const session = await auth();
-    const isPro = (session?.user as any)?.isPro || (session?.user as any)?.isAdmin;
+    const isPro = !!(session?.user?.isPro || session?.user?.isAdmin);
 
     // DELEGATE TO SUBMERGED ORCHESTRATOR
     const result = await orchestrateCosmicAudit({

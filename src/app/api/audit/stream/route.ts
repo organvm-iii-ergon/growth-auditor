@@ -24,7 +24,7 @@ function parseScoresFromText(text: string): { communication: number; aesthetic: 
       scores[key] = parseInt(match[2], 10);
     }
   }
-  return Object.keys(scores).length >= 4 ? (scores as any) : null;
+  return Object.keys(scores).length >= 4 ? (scores as { communication: number; aesthetic: number; drive: number; structure: number }) : null;
 }
 
 /**
@@ -59,10 +59,10 @@ export async function POST(request: Request) {
     const { link, businessType, goals, teamId, language } = validation.data;
 
     const session = await auth();
-    const isPro = (session?.user as any)?.isPro || (session?.user as any)?.isAdmin;
+    const isPro = session?.user?.isPro || session?.user?.isAdmin;
 
     // Submerged context gathering
-    const [scrapedContent, screenshotBase64, seoData] = await Promise.all([
+    const [scrapedContent, , seoData] = await Promise.all([
       scrapeWebsite(link, isPro ? 3 : 1),
       captureScreenshot(link).catch(() => null),
       getPageSpeedInsights(link).catch(() => null),

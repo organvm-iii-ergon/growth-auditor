@@ -16,13 +16,13 @@ describe("evaluator service", () => {
   });
 
   it("returns a passed result for a high quality audit", async () => {
-    (generateText as any).mockResolvedValue({
+    vi.mocked(generateText).mockResolvedValue({
       text: JSON.stringify({
         score: 90,
         feedback: "Excellent clarity and actionability.",
         passed: true,
       }),
-    });
+    } as Awaited<ReturnType<typeof generateText>>);
 
     const result = await evaluateAudit("Mock audit content");
     expect(result.score).toBe(90);
@@ -31,13 +31,13 @@ describe("evaluator service", () => {
   });
 
   it("returns a failed result for a low quality audit", async () => {
-    (generateText as any).mockResolvedValue({
+    vi.mocked(generateText).mockResolvedValue({
       text: JSON.stringify({
         score: 40,
         feedback: "Too generic, lacking structure.",
         passed: false,
       }),
-    });
+    } as Awaited<ReturnType<typeof generateText>>);
 
     const result = await evaluateAudit("Poor audit content");
     expect(result.score).toBe(40);
@@ -45,7 +45,7 @@ describe("evaluator service", () => {
   });
 
   it("fails safe if the AI service errors", async () => {
-    (generateText as any).mockRejectedValue(new Error("AI Down"));
+    vi.mocked(generateText).mockRejectedValue(new Error("AI Down"));
 
     const result = await evaluateAudit("Any content");
     expect(result.passed).toBe(true);

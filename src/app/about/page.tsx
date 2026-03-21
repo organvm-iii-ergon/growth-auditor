@@ -45,7 +45,7 @@ export default function AboutPage() {
                   position: "absolute",
                   top: 0, left: 0,
                   zIndex: 1,
-                  mixBlendMode: "destination-out" as any
+                  mixBlendMode: "destination-out" as unknown as React.CSSProperties["mixBlendMode"]
                 }}>
                    <CosmicIcon type={p.icon as IconType} size="70%" style={{ margin: "15%" }} />
                 </div>

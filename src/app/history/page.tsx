@@ -163,7 +163,7 @@ export default function HistoryPage() {
                   <div className="card" style={{ marginBottom: "1rem", padding: "1rem" }}>
                     <ScoreTrendChart data={groupAudits.slice().reverse().map(a => ({
                       date: a.createdAt!,
-                      scores: parseScores(a.scores) as any
+                      scores: parseScores(a.scores) as { communication: number; aesthetic: number; drive: number; structure: number }
                     }))} />
                   </div>
                 )}

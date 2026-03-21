@@ -35,7 +35,7 @@ export async function scrapeWebsite(url: string, maxPages: number = 1): Promise<
       if (visited.size < maxPages) {
         const domain = new URL(currentUrl).hostname;
         $('a[href]').each((_, el) => {
-          let href = $(el).attr('href');
+          const href = $(el).attr('href');
           if (!href) return;
           
           try {

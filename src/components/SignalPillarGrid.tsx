@@ -19,7 +19,7 @@ const PILLARS: Pillar[] = [
   { id: "structure", name: "Saturn", icon: "saturn", color: "#ffcc00", description: "Technical stability is the bedrock of manifestation. Detailed SEO playbooks are gated behind the [Growth Vault]." },
 ];
 
-export default function SignalPillarGrid({ scores }: { scores: any }) {
+export default function SignalPillarGrid({ scores }: { scores: Record<string, number> }) {
   const [activePillar, setActivePillar] = useState<string | null>(null);
 
   return (
@@ -73,7 +73,7 @@ export default function SignalPillarGrid({ scores }: { scores: any }) {
                   position: "absolute",
                   top: 0, left: 0,
                   zIndex: 1,
-                  mixBlendMode: "destination-out" as any
+                  mixBlendMode: "destination-out" as unknown as React.CSSProperties["mixBlendMode"]
                 }}>
                    <CosmicIcon type={pillar.icon} size="100%" style={{ color: "white" }} />
                 </div>

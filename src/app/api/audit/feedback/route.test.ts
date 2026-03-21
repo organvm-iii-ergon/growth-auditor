@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, type Mock } from "vitest";
 import { POST } from "./route";
 import * as db from "@/lib/db";
 import { auth } from "@/auth";
@@ -30,7 +30,7 @@ describe("Audit Feedback API", () => {
   });
 
   it("saves feedback successfully", async () => {
-    (auth as any).mockResolvedValue({ user: { email: "test@example.com" } });
+    (auth as unknown as Mock).mockResolvedValue({ user: { email: "test@example.com" } });
     const payload = { auditId: validAuditId, score: 1, comment: "Great audit!" };
     
     const req = new Request("http://localhost/api/audit/feedback", {

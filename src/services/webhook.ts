@@ -4,7 +4,7 @@ import { getIntegrations } from "@/lib/db";
 export interface WebhookPayload {
   event: "audit.completed" | "lead.captured" | "comparison.completed";
   timestamp: string;
-  data: Record<string, any>;
+  data: Record<string, unknown>;
 }
 
 export async function sendWebhook(payload: WebhookPayload, userEmail?: string): Promise<boolean> {
@@ -34,7 +34,7 @@ export async function sendWebhook(payload: WebhookPayload, userEmail?: string): 
   if (userEmail) {
     try {
       const integrations = await getIntegrations(userEmail);
-      const relevantIntegrations = (integrations as any[]).filter(i => i.event === payload.event);
+      const relevantIntegrations = (integrations as { name: string; url: string; event: string }[]).filter(i => i.event === payload.event);
       
       for (const integration of relevantIntegrations) {
         fetch(integration.url, {

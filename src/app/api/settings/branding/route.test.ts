@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, type Mock } from "vitest";
 import { GET, POST } from "./route";
 import * as db from "@/lib/db";
 import { auth } from "@/auth";
@@ -17,13 +17,13 @@ describe("Branding API", () => {
 
   beforeEach(() => {
     vi.resetAllMocks();
-    (auth as any).mockResolvedValue({ user: { email: mockEmail, isPro: true } });
+    (auth as unknown as Mock).mockResolvedValue({ user: { email: mockEmail, isPro: true } });
   });
 
   describe("GET", () => {
     it("returns branding info for the user", async () => {
       const mockSub = { plan: "pro", status: "active", customLogoUrl: "https://logo.com" };
-      (db.getSubscription as any).mockResolvedValue(mockSub);
+      vi.mocked(db.getSubscription).mockResolvedValue(mockSub);
 
       const res = await GET();
       expect(res.status).toBe(200);
@@ -46,7 +46,7 @@ describe("Branding API", () => {
     });
 
     it("returns 403 if user is not Pro", async () => {
-      (auth as any).mockResolvedValue({ user: { email: mockEmail, isPro: false } });
+      (auth as unknown as Mock).mockResolvedValue({ user: { email: mockEmail, isPro: false } });
       const req = new Request("http://localhost/api/settings/branding", {
         method: "POST",
         body: JSON.stringify({ logoUrl: "test" }),

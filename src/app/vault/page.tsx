@@ -42,7 +42,7 @@ const RESOURCES = [
 
 export default function VaultPage() {
   const { data: session } = useSession();
-  const isPro = (session?.user as any)?.isPro || (session?.user as any)?.isAdmin;
+  const isPro = session?.user?.isPro || session?.user?.isAdmin;
 
   if (!isPro) {
     return (

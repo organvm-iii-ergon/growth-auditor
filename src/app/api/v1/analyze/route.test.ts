@@ -29,8 +29,8 @@ vi.mock("@/lib/db", () => ({
 describe("Public API /api/v1/analyze", () => {
   beforeEach(() => {
     vi.resetAllMocks();
-    (scraper.scrapeWebsite as any).mockResolvedValue("scraped content");
-    (pagespeed.getPageSpeedInsights as any).mockResolvedValue({
+    vi.mocked(scraper.scrapeWebsite).mockResolvedValue("scraped content");
+    vi.mocked(pagespeed.getPageSpeedInsights).mockResolvedValue({
       performanceScore: 80,
       seoScore: 80,
       accessibilityScore: 80,
@@ -46,8 +46,8 @@ describe("Public API /api/v1/analyze", () => {
   });
 
   it("returns 403 if user has no active subscription", async () => {
-    (db.getUserByToken as any).mockResolvedValue("test@example.com");
-    (db.getSubscription as any).mockResolvedValue({ status: "inactive" });
+    vi.mocked(db.getUserByToken).mockResolvedValue("test@example.com");
+    vi.mocked(db.getSubscription).mockResolvedValue({ status: "inactive" });
 
     const req = new Request("http://localhost/api/v1/analyze", {
       method: "POST",
@@ -60,11 +60,11 @@ describe("Public API /api/v1/analyze", () => {
   });
 
   it("returns audit results for a valid request", async () => {
-    (db.getUserByToken as any).mockResolvedValue("test@example.com");
-    (db.getSubscription as any).mockResolvedValue({ plan: "pro", status: "active" });
-    (generateText as any).mockResolvedValue({
+    vi.mocked(db.getUserByToken).mockResolvedValue("test@example.com");
+    vi.mocked(db.getSubscription).mockResolvedValue({ plan: "pro", status: "active" });
+    vi.mocked(generateText).mockResolvedValue({
       text: JSON.stringify({ markdownAudit: "Audit text", scores: { communication: 80, aesthetic: 70, drive: 60, structure: 90 } }),
-    });
+    } as Awaited<ReturnType<typeof generateText>>);
 
     const req = new Request("http://localhost/api/v1/analyze", {
       method: "POST",

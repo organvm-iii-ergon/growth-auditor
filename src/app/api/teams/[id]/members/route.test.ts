@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, type Mock } from "vitest";
 import { GET, POST } from "./route";
 import * as db from "@/lib/db";
 import { auth } from "@/auth";
@@ -18,51 +18,51 @@ describe("Team Members API", () => {
 
   beforeEach(() => {
     vi.resetAllMocks();
-    (auth as any).mockResolvedValue({ user: { email: mockEmail } });
+    (auth as unknown as Mock).mockResolvedValue({ user: { email: mockEmail } });
   });
 
   describe("GET", () => {
     it("returns members if user is a member", async () => {
-      const mockMembers = [{ email: mockEmail, role: "owner" }];
-      (db.getTeamMembers as any).mockResolvedValue(mockMembers);
+      const mockMembers = [{ id: "m1", teamId: "team-123", email: mockEmail, role: "owner" as const }];
+      vi.mocked(db.getTeamMembers).mockResolvedValue(mockMembers);
 
-      const res = await GET({} as any, { params: { id: teamId } });
+      const res = await GET(new Request("http://localhost"), { params: Promise.resolve({ id: teamId }) });
       expect(res.status).toBe(200);
       const data = await res.json();
       expect(data).toEqual(mockMembers);
     });
 
     it("returns 403 if user is not a member", async () => {
-      (db.getTeamMembers as any).mockResolvedValue([{ email: "other@test.com", role: "owner" }]);
+      vi.mocked(db.getTeamMembers).mockResolvedValue([{ id: "m2", teamId: "team-123", email: "other@test.com", role: "owner" as const }]);
 
-      const res = await GET({} as any, { params: { id: teamId } });
+      const res = await GET(new Request("http://localhost"), { params: Promise.resolve({ id: teamId }) });
       expect(res.status).toBe(403);
     });
   });
 
   describe("POST", () => {
     it("adds a member if user is owner/admin", async () => {
-      (db.getTeamMembers as any).mockResolvedValue([{ email: mockEmail, role: "owner" }]);
+      vi.mocked(db.getTeamMembers).mockResolvedValue([{ id: "m1", teamId: "team-123", email: mockEmail, role: "owner" as const }]);
 
       const req = new Request(`http://localhost/api/teams/${teamId}/members`, {
         method: "POST",
         body: JSON.stringify({ email: "new@test.com", role: "member" }),
       });
 
-      const res = await POST(req, { params: { id: teamId } });
+      const res = await POST(req, { params: Promise.resolve({ id: teamId }) });
       expect(res.status).toBe(200);
       expect(db.addTeamMember).toHaveBeenCalledWith(teamId, "new@test.com", "member");
     });
 
     it("returns 403 if user is just a member", async () => {
-      (db.getTeamMembers as any).mockResolvedValue([{ email: mockEmail, role: "member" }]);
+      vi.mocked(db.getTeamMembers).mockResolvedValue([{ id: "m1", teamId: "team-123", email: mockEmail, role: "member" as const }]);
 
       const req = new Request(`http://localhost/api/teams/${teamId}/members`, {
         method: "POST",
         body: JSON.stringify({ email: "new@test.com" }),
       });
 
-      const res = await POST(req, { params: { id: teamId } });
+      const res = await POST(req, { params: Promise.resolve({ id: teamId }) });
       expect(res.status).toBe(403);
     });
   });

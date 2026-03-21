@@ -24,7 +24,7 @@ export function AmbientResonanceProvider({ children }: { children: React.ReactNo
   const initAudio = () => {
     if (isInitialized) return;
     try {
-      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
       const ctx = new AudioContextClass();
       audioCtxRef.current = ctx;
 
@@ -79,6 +79,7 @@ export function AmbientResonanceProvider({ children }: { children: React.ReactNo
       window.removeEventListener('click', handleInteraction);
       window.removeEventListener('touchstart', handleInteraction);
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- initAudio is stable (depends only on isInitialized ref)
   }, [isInitialized]);
 
   const shiftResonance = (frequencyOffset: number) => {

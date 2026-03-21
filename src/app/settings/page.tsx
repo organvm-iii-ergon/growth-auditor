@@ -21,7 +21,7 @@ export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<"ai" | "agency" | "data" | "integrations">("ai");
   const { data: session } = useSession();
 
-  const isPro = (session?.user as any)?.isPro || (session?.user as any)?.isAdmin;
+  const isPro = session?.user?.isPro || session?.user?.isAdmin;
 
   useEffect(() => {
     const storedProvider = getStoredProvider();
@@ -200,7 +200,7 @@ export default function SettingsPage() {
         </div>
 
         <p style={{ color: "var(--text-muted)", fontSize: "0.8rem", marginTop: "2rem", textAlign: "center", lineHeight: "1.6", opacity: 0.6 }}>
-          Local keys are never stored in our core database. They remain in your device's gravitational pull.
+          Local keys are never stored in our core database. They remain in your device&apos;s gravitational pull.
         </p>
       </div>
     </main>

@@ -28,7 +28,7 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    if (!(session.user as any).isPro && !(session.user as any).isAdmin) {
+    if (!session.user.isPro && !session.user.isAdmin) {
       return NextResponse.json({ error: "Pro subscription required for scheduled audits" }, { status: 403 });
     }
 
@@ -47,7 +47,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    if (!(session.user as any).isPro && !(session.user as any).isAdmin) {
+    if (!session.user.isPro && !session.user.isAdmin) {
       return NextResponse.json({ error: "Pro subscription required for scheduled audits" }, { status: 403 });
     }
 
@@ -83,7 +83,7 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    if (!(session.user as any).isPro && !(session.user as any).isAdmin) {
+    if (!session.user.isPro && !session.user.isAdmin) {
       return NextResponse.json({ error: "Pro subscription required" }, { status: 403 });
     }
 
@@ -113,7 +113,7 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    if (!(session.user as any).isPro && !(session.user as any).isAdmin) {
+    if (!session.user.isPro && !session.user.isAdmin) {
       return NextResponse.json({ error: "Pro subscription required" }, { status: 403 });
     }
 

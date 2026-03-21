@@ -6,7 +6,7 @@ const mockStreamText = vi.fn().mockReturnValue({
 });
 
 vi.mock("ai", () => ({
-  streamText: (...args: any[]) => mockStreamText(...args),
+  streamText: (...args: unknown[]) => mockStreamText(...args),
 }));
 
 vi.mock("@/services/aiModelFactory", () => ({

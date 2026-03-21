@@ -1,5 +1,5 @@
 import { generateText } from "ai";
-import { createAIModel } from "./aiModelFactory";
+import { createAIModel, type AIProvider } from "./aiModelFactory";
 
 export interface EvaluationResult {
   score: number;
@@ -12,7 +12,7 @@ export async function evaluateAudit(
   provider: string = "gemini",
   apiKey?: string
 ): Promise<EvaluationResult> {
-  const model = createAIModel(provider as any, apiKey || process.env.GEMINI_API_KEY || "");
+  const model = createAIModel(provider as AIProvider, apiKey || process.env.GEMINI_API_KEY || "");
 
   const prompt = `
     You are a Senior Growth Marketing Critic. Your job is to evaluate the quality of a "Cosmic Growth Audit" report.

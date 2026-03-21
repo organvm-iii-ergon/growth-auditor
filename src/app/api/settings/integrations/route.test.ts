@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, type Mock } from "vitest";
 import { GET, POST, DELETE } from "./route";
 import * as db from "@/lib/db";
 import { auth } from "@/auth";
@@ -18,13 +18,13 @@ describe("Integrations API", () => {
 
   beforeEach(() => {
     vi.resetAllMocks();
-    (auth as any).mockResolvedValue({ user: { email: mockEmail } });
+    (auth as unknown as Mock).mockResolvedValue({ user: { email: mockEmail } });
   });
 
   describe("GET", () => {
     it("returns integrations for the user", async () => {
       const mockInts = [{ id: "1", name: "Slack", url: "http://slack.com", event: "audit.completed" }];
-      (db.getIntegrations as any).mockResolvedValue(mockInts);
+      vi.mocked(db.getIntegrations).mockResolvedValue(mockInts);
 
       const res = await GET();
       expect(res.status).toBe(200);

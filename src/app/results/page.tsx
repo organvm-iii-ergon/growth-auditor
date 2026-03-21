@@ -281,7 +281,7 @@ export default function ResultsPage() {
       <div className="hero">
         <div className="astro-badge">
           <span aria-hidden="true">✦</span>
-          Audit Manifested {((session?.user as any)?.isPro || (session?.user as any)?.isAdmin) && <ProBadge />}
+          Audit Manifested {(session?.user?.isPro || session?.user?.isAdmin) && <ProBadge />}
         </div>
         <h1 style={{ letterSpacing: "-0.06em", fontWeight: 900 }}>Strategic Alignment</h1>
         <p>A procedural identity derived from your digital footprint.</p>

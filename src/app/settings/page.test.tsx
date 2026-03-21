@@ -8,12 +8,12 @@ vi.mock('next-auth/react', () => ({
   SessionProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
 
-global.fetch = vi.fn(() => 
+global.fetch = vi.fn(() =>
   Promise.resolve({
     ok: true,
     json: () => Promise.resolve({}),
-  })
-) as any;
+  } as Response)
+);
 
 describe('SettingsPage', () => {
   beforeEach(() => {

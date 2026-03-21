@@ -26,7 +26,7 @@ export default function TransparentIcon({ type, size = "100%", className, style 
         display: "flex", 
         alignItems: "center", 
         justifyContent: "center",
-        mixBlendMode: "destination-out" as any,
+        mixBlendMode: "destination-out" as unknown as React.CSSProperties["mixBlendMode"],
         background: "transparent",
         ...style 
       }}

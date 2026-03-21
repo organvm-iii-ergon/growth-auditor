@@ -18,10 +18,10 @@ describe("TeamDetailsPage", () => {
   });
 
   it("renders member list", async () => {
-    (global.fetch as any).mockResolvedValue({
+    vi.mocked(global.fetch).mockResolvedValue({
       ok: true,
       json: async () => [{ id: "m1", email: "owner@example.com", role: "owner" }],
-    });
+    } as unknown as Response);
 
     render(<TeamDetailsPage params={params} />);
     expect(await screen.findByText("owner@example.com")).toBeInTheDocument();
@@ -29,13 +29,13 @@ describe("TeamDetailsPage", () => {
   });
 
   it("invites a new member", async () => {
-    (global.fetch as any)
-      .mockResolvedValueOnce({ ok: true, json: async () => [{ id: "m1", email: "owner@example.com", role: "owner" }] })
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ success: true }) })
+    vi.mocked(global.fetch)
+      .mockResolvedValueOnce({ ok: true, json: async () => [{ id: "m1", email: "owner@example.com", role: "owner" }] } as unknown as Response)
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ success: true }) } as unknown as Response)
       .mockResolvedValueOnce({ ok: true, json: async () => [
         { id: "m1", email: "owner@example.com", role: "owner" },
         { id: "m2", email: "new@test.com", role: "member" }
-      ] });
+      ] } as unknown as Response);
 
     render(<TeamDetailsPage params={params} />);
     

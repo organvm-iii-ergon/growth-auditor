@@ -18,7 +18,7 @@ export interface OrchestratedAuditRequest {
 
 export interface OrchestratedAuditResponse {
   markdownAudit: string;
-  scores: any;
+  scores: Record<string, number>;
   evaluationScore: number;
   iterations: number;
 }
@@ -45,7 +45,7 @@ export async function orchestrateCosmicAudit(
   const prompt = getCosmicAuditPrompt(data.link, data.businessType, data.goals, scrapedContent, seoData, data.language);
 
   // 2. Initial Generation
-  let { text } = await generateText({
+  const { text } = await generateText({
     model,
     messages: [{
       role: "user",

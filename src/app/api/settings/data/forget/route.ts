@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { auth, signOut } from "@/auth";
+import { auth } from "@/auth";
 import { deleteUserData } from "@/lib/db";
 
 export async function DELETE() {

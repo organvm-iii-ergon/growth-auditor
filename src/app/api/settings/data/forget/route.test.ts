@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, type Mock } from "vitest";
 import { DELETE } from "./route";
 import * as db from "@/lib/db";
 import { auth } from "@/auth";
@@ -16,7 +16,7 @@ describe("Data Forget API", () => {
 
   beforeEach(() => {
     vi.resetAllMocks();
-    (auth as any).mockResolvedValue({ user: { email: mockEmail } });
+    (auth as unknown as Mock).mockResolvedValue({ user: { email: mockEmail } });
   });
 
   it("calls deleteUserData and returns success", async () => {
@@ -28,7 +28,7 @@ describe("Data Forget API", () => {
   });
 
   it("returns 401 if unauthorized", async () => {
-    (auth as any).mockResolvedValue(null);
+    (auth as unknown as Mock).mockResolvedValue(null);
     const res = await DELETE();
     expect(res.status).toBe(401);
   });

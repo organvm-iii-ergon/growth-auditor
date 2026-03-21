@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { getUserByToken, getSubscription } from "@/lib/db";
 import { scrapeWebsite } from "@/services/scraper";
 import { getCosmicAuditPrompt } from "@/services/promptTemplates";
-import { captureScreenshot } from "@/services/vision";
 import { getPageSpeedInsights } from "@/services/pagespeed";
 import { createAIModel } from "@/services/aiModelFactory";
 import { generateText } from "ai";

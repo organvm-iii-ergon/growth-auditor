@@ -28,15 +28,17 @@ describe("PricingPage", () => {
   });
 
   it("triggers stripe checkout on button click", async () => {
-    (global.fetch as any).mockResolvedValue({
+    vi.mocked(global.fetch).mockResolvedValue({
       ok: true,
       json: async () => ({ url: "https://stripe.com/checkout" }),
-    });
+    } as Response);
 
     // Mock window.location
     const originalLocation = window.location;
-    delete (window as any).location;
-    window.location = { ...originalLocation, href: "" } as any;
+    Object.defineProperty(window, 'location', {
+      value: { ...originalLocation, href: "" },
+      writable: true,
+    });
 
     render(<PricingPage />);
     const proButton = screen.getByText(/Manifest Pro/i);
@@ -46,6 +48,9 @@ describe("PricingPage", () => {
       expect(window.location.href).toBe("https://stripe.com/checkout");
     });
 
-    window.location = originalLocation;
+    Object.defineProperty(window, 'location', {
+      value: originalLocation,
+      writable: true,
+    });
   });
 });
