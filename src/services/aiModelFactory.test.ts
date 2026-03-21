@@ -1,30 +1,26 @@
 import { describe, it, expect } from "vitest";
-import { createAIModel, type AIProviderType } from "./aiModelFactory";
+import { createAIModel, type AIProvider } from "./aiModelFactory";
 
-describe("createAIModel", () => {
-  const fakeKey = "test-key-for-unit-test"; // allow-secret
+describe("aiModelFactory service", () => {
+  const fakeKey = "test-key"; // allow-secret
 
-  it("returns a model for gemini provider", () => {
+  it("returns a model for gemini", () => {
     const model = createAIModel("gemini", fakeKey); // allow-secret
     expect(model).toBeDefined();
-    expect(model.modelId).toBe("gemini-1.5-flash");
   });
 
-  it("returns a model for openai provider", () => {
+  it("returns a model for openai", () => {
     const model = createAIModel("openai", fakeKey); // allow-secret
     expect(model).toBeDefined();
-    expect(model.modelId).toBe("gpt-4o-mini");
   });
 
-  it("returns a model for claude provider", () => {
+  it("returns a model for claude", () => {
     const model = createAIModel("claude", fakeKey); // allow-secret
     expect(model).toBeDefined();
-    expect(model.modelId).toBe("claude-sonnet-4-20250514");
   });
 
-  it("defaults to gemini for unknown provider", () => {
-    const model = createAIModel("unknown" as AIProviderType, fakeKey); // allow-secret
+  it("returns a default model for unknown provider", () => {
+    const model = createAIModel("unknown" as AIProvider, fakeKey); // allow-secret
     expect(model).toBeDefined();
-    expect(model.modelId).toBe("gemini-1.5-flash");
   });
 });

@@ -1,5 +1,5 @@
 import { streamText } from 'ai';
-import { createAIModel, type AIProviderType } from '@/services/aiModelFactory';
+import { createAIModel, type AIProvider } from '@/services/aiModelFactory';
 
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
@@ -18,7 +18,7 @@ export async function POST(req: Request) {
     const apiKey = authHeader.split(" ")[1]; // allow-secret
 
     // Determine AI provider from header (defaults to gemini)
-    const provider = (req.headers.get("X-AI-Provider") || "gemini") as AIProviderType;
+    const provider = (req.headers.get("X-AI-Provider") || "gemini") as AIProvider;
 
     const { messages, auditContext } = await req.json();
 
