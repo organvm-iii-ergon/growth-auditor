@@ -6,8 +6,6 @@ import { PostHogProvider } from "@/providers/PostHogProvider";
 import { AuthProvider } from "@/providers/AuthProvider";
 import { AmbientResonanceProvider } from "@/components/AmbientResonance";
 import SpaceTimeBackground from "@/components/SpaceTimeBackground";
-import { getAllConfig } from "@/lib/config";
-
 export const metadata: Metadata = {
   title: {
     default: "Growth Auditor AI | Cosmic Strategy & Digital Alignment",
@@ -29,14 +27,27 @@ export const metadata: Metadata = {
   },
 };
 
+function safeGetAllConfig(): Record<string, string> {
+  try {
+    const { getAllConfig } = require("@/lib/config");
+    return getAllConfig();
+  } catch {
+    return {};
+  }
+}
+
 export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   const session = await auth();
-  const config = getAllConfig();
-  const { appName, primaryColor, accentColor, faviconUrl, customCss } = config;
+  const config = safeGetAllConfig();
+  const appName = config.appName || process.env.NEXT_PUBLIC_APP_NAME || "Growth Auditor";
+  const primaryColor = config.primaryColor || "";
+  const accentColor = config.accentColor || "";
+  const faviconUrl = config.faviconUrl || "";
+  const customCss = config.customCss || "";
 
   return (
     <html lang="en">
