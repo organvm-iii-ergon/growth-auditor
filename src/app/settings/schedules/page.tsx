@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Loader from "@/components/Loader";
-import type { ScheduledAuditRecord } from "@/lib/db";
+import type { ScheduledAuditRecord, TeamRecord } from "@/lib/db";
 
 export default function SchedulesPage() {
   const [schedules, setSchedules] = useState<ScheduledAuditRecord[]>([]);
@@ -16,7 +16,9 @@ export default function SchedulesPage() {
     businessType: "",
     goals: "",
     frequency: "monthly" as "weekly" | "monthly",
+    teamId: "",
   });
+  const [teams, setTeams] = useState<TeamRecord[]>([]);
 
   const fetchSchedules = async () => {
     try {
@@ -32,8 +34,21 @@ export default function SchedulesPage() {
     }
   };
 
+  const fetchTeams = async () => {
+    try {
+      const res = await fetch("/api/teams");
+      if (res.ok) {
+        const data = await res.json();
+        setTeams(data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch teams", err);
+    }
+  };
+
   useEffect(() => {
     fetchSchedules();
+    fetchTeams();
   }, []);
 
   const handleAddSchedule = async (e: React.FormEvent) => {
@@ -55,6 +70,7 @@ export default function SchedulesPage() {
         businessType: "",
         goals: "",
         frequency: "monthly",
+        teamId: "",
       });
       fetchSchedules();
     } catch (err) {
@@ -178,6 +194,25 @@ export default function SchedulesPage() {
                 <option value="monthly">Monthly</option>
               </select>
             </div>
+
+            {teams.length > 0 && (
+              <div className="form-group">
+                <label htmlFor="teamId">Assign to Team (Optional)</label>
+                <select
+                  id="teamId"
+                  className="input"
+                  value={newSchedule.teamId}
+                  onChange={(e) => setNewSchedule({ ...newSchedule, teamId: e.target.value })}
+                >
+                  <option value="">Personal Schedule</option>
+                  {teams.map((team) => (
+                    <option key={team.id} value={team.id}>
+                      {team.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
             <button className="btn" type="submit" disabled={saving}>
               {saving ? "Scheduling..." : "Manifest Schedule"}
             </button>
@@ -197,6 +232,7 @@ export default function SchedulesPage() {
                   <div style={{ fontWeight: 600, fontSize: "1.1rem", marginBottom: "0.25rem" }}>{s.link}</div>
                   <div style={{ fontSize: "0.9rem", color: "var(--text-muted)" }}>
                     {s.businessType} • {s.frequency.charAt(0).toUpperCase() + s.frequency.slice(1)}
+                    {s.teamId && teams.find(t => t.id === s.teamId) && ` • Collective: ${teams.find(t => t.id === s.teamId)?.name}`}
                   </div>
                   {s.lastRunAt && (
                     <div style={{ fontSize: "0.8rem", color: "var(--text-muted)", marginTop: "0.5rem" }}>

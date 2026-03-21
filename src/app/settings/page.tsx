@@ -10,6 +10,7 @@ import {
   getProviderConfig,
   getStoredApiKey,
 } from "@/services/aiProvider";
+import ProBadge from "@/components/ProBadge";
 
 export default function SettingsPage() {
   const [provider, setProvider] = useState<AIProvider>("gemini");
@@ -77,7 +78,7 @@ export default function SettingsPage() {
   return (
     <main className="main">
       <div className="hero">
-        <h1>Settings</h1>
+        <h1>Settings {((session?.user as any)?.isPro || (session?.user as any)?.isAdmin) && <ProBadge />}</h1>
         <p>Configure your AI provider and API key to run audits for free.</p>
       </div>
 

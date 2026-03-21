@@ -11,6 +11,7 @@ import EmailGate from "@/components/EmailGate";
 import ShareButtons from "@/components/ShareButtons";
 import { getStoredApiKey, getStoredProvider } from "@/services/aiProvider";
 import { useSession } from "next-auth/react";
+import ProBadge from "@/components/ProBadge";
 
 function parseScoresFromText(text: string): { communication: number; aesthetic: number; drive: number; structure: number } | null {
   const scoresMatch = text.match(/## Scores[\s\S]*$/);
@@ -274,7 +275,7 @@ export default function ResultsPage() {
       <div className="hero">
         <div className="astro-badge">
           <span aria-hidden="true">✦</span>
-          Audit Manifested
+          Audit Manifested {((session?.user as any)?.isPro || (session?.user as any)?.isAdmin) && <ProBadge />}
         </div>
         <h1>Your Growth Strategy</h1>
         <p>A data-backed cosmic roadmap for your digital presence.</p>

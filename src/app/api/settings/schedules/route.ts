@@ -38,7 +38,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { link, businessType, goals, frequency } = body;
+    const { link, businessType, goals, frequency, teamId } = body;
 
     if (!link || !businessType || !goals || !frequency) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
@@ -46,6 +46,7 @@ export async function POST(request: Request) {
 
     const id = await saveScheduledAudit({
       userEmail: session.user.email,
+      teamId: teamId || undefined,
       link,
       businessType,
       goals,
