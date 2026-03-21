@@ -4,15 +4,16 @@ import { addTeamMember, getTeamMembers } from "@/lib/db";
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await auth();
     if (!session?.user?.email) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const members = await getTeamMembers(params.id);
+    const members = await getTeamMembers(id);
     // Verify user is a member of this team
     const isMember = members.some(m => m.email === session.user?.email);
     if (!isMember) {
@@ -28,9 +29,10 @@ export async function GET(
 
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await auth();
     if (!session?.user?.email) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -41,13 +43,13 @@ export async function POST(
       return NextResponse.json({ error: "Email is required" }, { status: 400 });
     }
 
-    const members = await getTeamMembers(params.id);
+    const members = await getTeamMembers(id);
     const isOwnerOrAdmin = members.some(m => m.email === session.user?.email && (m.role === "owner" || m.role === "admin"));
     if (!isOwnerOrAdmin) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    await addTeamMember(params.id, email, role);
+    await addTeamMember(id, email, role);
     return NextResponse.json({ message: "Member added successfully" });
   } catch (error: unknown) {
     console.error("POST Team Member Error:", error);

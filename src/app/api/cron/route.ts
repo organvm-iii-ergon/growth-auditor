@@ -43,8 +43,8 @@ async function generateMonthlyAudit(
     messages: [{
       role: "user",
       content: [
-        { type: "text", text: prompt },
-        ...(screenshotBase64 ? [{ type: "image" as const, image: screenshotBase64, mimeType: "image/jpeg" as const }] : [])
+        { type: "text" as const, text: prompt },
+        ...(screenshotBase64 ? [{ type: "image" as const, image: screenshotBase64 }] : [])
       ],
     }],
   });
@@ -178,7 +178,7 @@ export async function GET(req: Request) {
           audit.link,
           audit.businessType,
           audit.goals,
-          audit.userEmail
+          audit.userEmail!
         );
         processed++;
       } catch (e) {

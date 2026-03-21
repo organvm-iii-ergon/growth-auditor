@@ -22,7 +22,7 @@ const auditSchema = z.object({
   teamId: z.string().optional(),
 });
 
-export const runtime = "edge";
+// export const runtime = "edge";
 
 export async function POST(request: Request) {
   try {
@@ -73,27 +73,14 @@ export async function POST(request: Request) {
     const model = createAIModel(provider, apiKey); // allow-secret
     const prompt = getCosmicAuditPrompt(link, businessType, goals, scrapedContent, seoData);
 
-    type TextPart = { type: "text"; text: string };
-    type ImagePart = { type: "image"; image: string; mimeType: "image/jpeg" };
-    type ContentPart = TextPart | ImagePart;
-
-    const contentParts: ContentPart[] = [
-      { type: "text", text: prompt },
-    ];
-
-    if (screenshotBase64) {
-      contentParts.push({
-        type: "image",
-        image: screenshotBase64,
-        mimeType: "image/jpeg",
-      });
-    }
-
     const { text } = await generateText({
       model,
       messages: [{
         role: "user",
-        content: contentParts,
+        content: [
+          { type: "text" as const, text: prompt },
+          ...(screenshotBase64 ? [{ type: "image" as const, image: screenshotBase64 }] : [])
+        ],
       }],
     });
 
