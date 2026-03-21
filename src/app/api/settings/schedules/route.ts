@@ -8,6 +8,7 @@ import {
   deleteScheduledAudit,
   getTeamMembers,
 } from "@/lib/db";
+import { ScheduleSchema } from "@/lib/schemas";
 
 async function canAccessSchedule(id: string, userEmail: string) {
   const schedule = await getScheduledAuditById(id);
@@ -51,11 +52,12 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { link, businessType, goals, frequency, teamId } = body;
-
-    if (!link || !businessType || !goals || !frequency) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    const validation = ScheduleSchema.safeParse(body);
+    if (!validation.success) {
+      return NextResponse.json({ error: "Invalid schedule data.", details: validation.error.format() }, { status: 400 });
     }
+
+    const { link, businessType, goals, frequency, teamId } = validation.data;
 
     const id = await saveScheduledAudit({
       userEmail: session.user.email,

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { getSubscription, updateBranding } from "@/lib/db";
+import { BrandingSchema } from "@/lib/schemas";
 
 export async function GET() {
   try {
@@ -35,12 +36,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Pro subscription required for custom branding" }, { status: 403 });
     }
 
-    const { logoUrl } = await request.json();
-    if (!logoUrl) {
-      return NextResponse.json({ error: "Logo URL is required" }, { status: 400 });
+    const body = await request.json();
+    const validation = BrandingSchema.safeParse(body);
+    if (!validation.success) {
+      return NextResponse.json({ error: "Invalid branding data.", details: validation.error.format() }, { status: 400 });
     }
 
-    await updateBranding(session.user.email, logoUrl);
+    await updateBranding(session.user.email, validation.data.logoUrl);
     return NextResponse.json({ message: "Branding updated successfully" });
   } catch (error: unknown) {
     console.error("POST Branding Error:", error);

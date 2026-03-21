@@ -28,32 +28,31 @@ describe('SettingsPage', () => {
   it('renders correctly', () => {
     render(<SettingsPage />);
     expect(screen.getByText('Settings')).toBeInTheDocument();
-    expect(screen.getByLabelText(/Google Gemini API Key/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Secret Key/i)).toBeInTheDocument();
   });
 
   it('loads keys from localStorage', () => {
     localStorage.setItem('gemini_api_key', 'stored-gemini-key');
-    
     render(<SettingsPage />);
     
-    expect(screen.getByLabelText(/Google Gemini API Key/i)).toHaveValue('stored-gemini-key');
+    expect(screen.getByLabelText(/Secret Key/i)).toHaveValue('stored-gemini-key');
   });
 
   it('saves keys to localStorage and shows success message', () => {
     render(<SettingsPage />);
     
-    fireEvent.change(screen.getByLabelText(/Google Gemini API Key/i), { target: { value: 'new-gemini-key' } });
+    fireEvent.change(screen.getByLabelText(/Secret Key/i), { target: { value: 'new-gemini-key' } });
     
-    const saveButton = screen.getByText(/Save Configuration/i);
+    const saveButton = screen.getByText(/Align AI Engine/i);
     fireEvent.click(saveButton);
-
+    
     expect(localStorage.getItem('gemini_api_key')).toBe('new-gemini-key');
-    expect(saveButton).toHaveTextContent('Configuration Saved! ✓');
-
+    expect(saveButton).toHaveTextContent('Alignment Saved! ✦');
+    
     act(() => {
       vi.advanceTimersByTime(3000);
     });
-
-    expect(saveButton).toHaveTextContent('Save Configuration');
+    
+    expect(saveButton).toHaveTextContent('Align AI Engine');
   });
 });

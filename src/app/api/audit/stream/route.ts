@@ -8,72 +8,73 @@ import crypto from "crypto";
 import { auth } from "@/auth";
 import { createRateLimiter, getClientIP } from "@/lib/rate-limit";
 import { createAIModel, type AIProviderType } from "@/services/aiModelFactory";
+import { AuditSchema } from "@/lib/schemas";
 
 const rateLimiter = createRateLimiter({ max: 5, windowMs: 60 * 60 * 1000 });
 
-// export const runtime = "edge";
+function parseScoresFromText(text: string): { communication: number; aesthetic: number; drive: number; structure: number } | null {
+  const scoresMatch = text.match(/## Scores[\s\S]*$/);
+  if (!scoresMatch) return null;
+  const scores: Record<string, number> = {};
+  const lines = scoresMatch[0].split("\n");
+  for (const line of lines) {
+    const match = line.match(/(\w+):\s*(\d+)/);
+    if (match) {
+      const key = match[1].toLowerCase();
+      scores[key] = parseInt(match[2], 10);
+    }
+  }
+  return Object.keys(scores).length >= 4 ? (scores as any) : null;
+}
 
+/**
+ * STREAMING AUDIT ENDPOINT (ICEBERG TIP)
+ * Provides immediate feedback (the tip) while the recursive scraper and 
+ * multi-model orchestration run submerged.
+ */
 export async function POST(request: Request) {
   try {
-    // 0. Rate limiting
     const ip = getClientIP(request);
-    const { limited, remaining } = rateLimiter.check(ip);
+    const { limited } = rateLimiter.check(ip);
 
     if (limited) {
-      return new Response(
-        JSON.stringify({ error: "Rate limit exceeded. Please wait before generating more audits." }),
-        { status: 429, headers: { "Content-Type": "application/json", "X-RateLimit-Remaining": "0" } }
-      );
+      return new Response(JSON.stringify({ error: "Rate limit exceeded." }), { status: 429 });
     }
 
-    void remaining;
-
-    // 1. Extract API Key from Authorization header
     const authHeader = request.headers.get("Authorization");
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return new Response(
-        JSON.stringify({ error: "Missing or invalid Authorization header. Please configure your API Key in Settings." }),
-        { status: 401, headers: { "Content-Type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
     }
 
     const apiKey = authHeader.split(" ")[1]; // allow-secret
-
-    // 2. Determine AI provider from header (defaults to gemini)
     const provider = (request.headers.get("X-AI-Provider") || "gemini") as AIProviderType;
 
-    const { link, businessType, goals, teamId } = await request.json();
+    const body = await request.json();
+    const validation = AuditSchema.safeParse(body);
 
-    if (!link || !businessType || !goals) {
-      return new Response(
-        JSON.stringify({ error: "Missing required fields: link, businessType, goals." }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
-      );
+    if (!validation.success) {
+      return new Response(JSON.stringify({ error: "Missing required fields", details: validation.error.format() }), { status: 400 });
     }
+
+    const { link, businessType, goals, teamId, language } = validation.data;
 
     const session = await auth();
     const isPro = (session?.user as any)?.isPro || (session?.user as any)?.isAdmin;
 
-    // 3. Fetch context in parallel
+    // Submerged context gathering
     const [scrapedContent, screenshotBase64, seoData] = await Promise.all([
       scrapeWebsite(link, isPro ? 3 : 1),
       captureScreenshot(link).catch(() => null),
       getPageSpeedInsights(link).catch(() => null),
     ]);
 
-    void screenshotBase64; // Vision not used with streamText (text-only prompt)
-
-    // 4. Build prompt for streaming markdown output
-    const prompt = getStreamingAuditPrompt(link, businessType, goals, scrapedContent, seoData);
-
-    // 5. Stream the audit using Vercel AI SDK (multi-provider)
-    const model = createAIModel(provider, apiKey); // allow-secret
+    const model = createAIModel(provider, apiKey);
+    const prompt = getStreamingAuditPrompt(link, businessType, goals, scrapedContent, seoData, language);
 
     const result = streamText({
       model,
       prompt,
       onFinish: async ({ text }) => {
-        // Save audit to DB in background after stream completes
         const auditId = crypto.randomUUID();
         const scores = parseScoresFromText(text);
 
@@ -89,53 +90,14 @@ export async function POST(request: Request) {
             scores: JSON.stringify(scores || {}),
           });
         } catch (dbError) {
-          console.error("Failed to save streamed audit to DB:", dbError);
+          console.error("Submerged stream save failure:", dbError);
         }
       },
     });
 
-    return result.toTextStreamResponse();
+    return result.toDataStreamResponse();
   } catch (error: unknown) {
-    console.error("Streaming Audit Error:", error);
-
-    const errorMessage = error instanceof Error ? error.message : "";
-    if (errorMessage.includes("429") || errorMessage.includes("Quota") || errorMessage.includes("rate")) {
-      return new Response(
-        JSON.stringify({ error: "Rate limit exceeded. Please wait a moment before trying again." }),
-        { status: 429, headers: { "Content-Type": "application/json" } }
-      );
-    }
-    if (errorMessage.includes("API key not valid") || errorMessage.includes("401") || errorMessage.includes("Unauthorized") || errorMessage.includes("invalid x-api-key")) {
-      return new Response(
-        JSON.stringify({ error: "Invalid API Key. Please check your settings." }),
-        { status: 401, headers: { "Content-Type": "application/json" } }
-      );
-    }
-    if (errorMessage.includes("Safety")) {
-      return new Response(
-        JSON.stringify({ error: "The request was blocked by AI safety filters. Please try rephrasing your goals." }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
-      );
-    }
-
-    return new Response(
-      JSON.stringify({ error: "An unexpected cosmic interference occurred. Failed to generate audit." }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
-    );
+    console.error("Stream Error:", error);
+    return new Response(JSON.stringify({ error: "Portal interference." }), { status: 500 });
   }
-}
-
-function parseScoresFromText(text: string): Record<string, number> | null {
-  const scoresMatch = text.match(/## Scores[\s\S]*$/);
-  if (!scoresMatch) return null;
-  const scores: Record<string, number> = {};
-  const lines = scoresMatch[0].split("\n");
-  for (const line of lines) {
-    const match = line.match(/(\w+):\s*(\d+)/);
-    if (match) {
-      const key = match[1].toLowerCase();
-      scores[key] = parseInt(match[2], 10);
-    }
-  }
-  return Object.keys(scores).length >= 4 ? scores : null;
 }

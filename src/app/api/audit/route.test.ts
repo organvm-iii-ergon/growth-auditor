@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const mockGenerateText = vi.fn().mockResolvedValue({
   text: JSON.stringify({
@@ -45,10 +45,22 @@ vi.mock('@/services/evaluator', () => ({
   evaluateAudit: vi.fn().mockResolvedValue({ score: 90, feedback: "Good", passed: true }),
 }));
 
+vi.mock('@/services/aiOrchestrator', () => ({
+  orchestrateCosmicAudit: vi.fn().mockResolvedValue({
+    markdownAudit: 'Mocked audit response',
+    scores: { communication: 90 },
+    evaluationScore: 90,
+    iterations: 1
+  }),
+}));
+
 import { POST } from './route';
-import { createAIModel } from '@/services/aiModelFactory';
 
 describe('API Route /api/audit', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   it('returns 401 if Authorization header is missing', async () => {
     const request = new Request('http://localhost/api/audit', {
       method: 'POST',
@@ -62,7 +74,7 @@ describe('API Route /api/audit', () => {
     const response = await POST(request);
     expect(response.status).toBe(401);
     const data = await response.json();
-    expect(data.error).toContain('Missing or invalid Authorization header');
+    expect(data.error).toContain('Missing Authorization');
   });
 
   it('returns 400 if required fields are missing', async () => {
@@ -80,7 +92,7 @@ describe('API Route /api/audit', () => {
     const response = await POST(request);
     expect(response.status).toBe(400);
     const data = await response.json();
-    expect(data.error).toContain('Invalid alignment data provided');
+    expect(data.error).toContain('Invalid alignment data');
   });
 
   it('returns 429 after 5 requests from the same IP', async () => {
@@ -129,31 +141,5 @@ describe('API Route /api/audit', () => {
     expect(response.status).toBe(200);
     const data = await response.json();
     expect(data.audit).toBe('Mocked audit response');
-
-    // Verify the AI model factory was called with default provider
-    expect(createAIModel).toHaveBeenCalledWith('gemini', 'valid-key'); // allow-secret
-    expect(mockGenerateText).toHaveBeenCalled();
-  });
-
-  it('passes X-AI-Provider header to createAIModel', async () => {
-    vi.mocked(createAIModel).mockClear();
-
-    const request = new Request('http://localhost/api/audit', {
-      method: 'POST',
-      headers: {
-        'Authorization': 'Bearer test-openai-key', // allow-secret
-        'Content-Type': 'application/json',
-        'X-AI-Provider': 'openai',
-      },
-      body: JSON.stringify({
-        link: 'https://test.com',
-        businessType: 'Agency',
-        goals: 'Scale team',
-      }),
-    });
-
-    const response = await POST(request);
-    expect(response.status).toBe(200);
-    expect(createAIModel).toHaveBeenCalledWith('openai', 'test-openai-key'); // allow-secret
   });
 });

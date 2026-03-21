@@ -1,11 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAudits, saveAudit, getScheduledAudits, updateScheduledAudit, getSubscription, getTeamMembers } from "@/lib/db";
-import { scrapeWebsite } from "@/services/scraper";
-import { getCosmicAuditPrompt } from "@/services/promptTemplates";
-import { captureScreenshot } from "@/services/vision";
-import { getPageSpeedInsights } from "@/services/pagespeed";
-import { generateText } from "ai";
-import { createAIModel } from "@/services/aiModelFactory";
+import { orchestrateCosmicAudit } from "@/services/aiOrchestrator";
 import { Resend } from "resend";
 import crypto from "crypto";
 
@@ -18,46 +13,24 @@ async function generateMonthlyAudit(
   userEmail: string,
   teamId?: string
 ): Promise<void> {
-  // Use server key for cron
   const apiKey = process.env.GEMINI_API_KEY; // allow-secret
   if (!apiKey) {
     console.error("GEMINI_API_KEY not set for monthly audit");
     return;
   }
 
-  // Check Pro status
   const sub = await getSubscription(userEmail);
   const isPro = sub?.plan === "pro" && sub?.status === "active";
 
-  const [scrapedContent, screenshotBase64, seoData] = await Promise.all([
-    scrapeWebsite(link, isPro ? 3 : 1).catch(() => ""),
-    captureScreenshot(link).catch(() => null),
-    getPageSpeedInsights(link).catch(() => null),
-  ]);
-
-  const model = createAIModel("gemini", apiKey);
-  const prompt = getCosmicAuditPrompt(link, businessType, goals, scrapedContent, seoData);
-
-  const { text } = await generateText({
-    model,
-    messages: [{
-      role: "user",
-      content: [
-        { type: "text" as const, text: prompt },
-        ...(screenshotBase64 ? [{ type: "image" as const, image: screenshotBase64 }] : [])
-      ],
-    }],
+  // Use the submerged orchestrator for consistency and quality
+  const result = await orchestrateCosmicAudit({
+    link,
+    businessType,
+    goals,
+    provider: "gemini",
+    auth: apiKey,
+    isPro,
   });
-
-  let parsedResult;
-  try {
-    const jsonMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
-    const jsonText = jsonMatch ? jsonMatch[1].trim() : text.trim();
-    parsedResult = JSON.parse(jsonText);
-  } catch {
-    console.error("Failed to parse AI JSON in cron:", text);
-    return;
-  }
 
   const auditId = crypto.randomUUID();
   await saveAudit({
@@ -67,11 +40,11 @@ async function generateMonthlyAudit(
     link,
     businessType,
     goals,
-    markdownAudit: parsedResult.markdownAudit,
-    scores: JSON.stringify(parsedResult.scores || {}),
+    markdownAudit: result.markdownAudit,
+    scores: JSON.stringify(result.scores || {}),
   });
 
-  // Notify user and team members
+  // Notify recipients
   const recipients = [userEmail];
   if (teamId) {
     const members = await getTeamMembers(teamId);
@@ -81,7 +54,7 @@ async function generateMonthlyAudit(
   }
 
   if (resend) {
-    const scores = parsedResult.scores || {};
+    const scores = result.scores || {};
     try {
       await resend.emails.send({
         from: "Growth Auditor <hello@growthauditor.ai>",
@@ -112,13 +85,10 @@ async function generateMonthlyAudit(
 
 function isDue(frequency: "weekly" | "monthly", lastRunAt?: string): boolean {
   if (!lastRunAt) return true;
-
   const last = new Date(lastRunAt).getTime();
   const now = Date.now();
   const daysSinceLast = (now - last) / (1000 * 60 * 60 * 24);
-
-  if (frequency === "weekly") return daysSinceLast >= 7;
-  return daysSinceLast >= 30;
+  return frequency === "weekly" ? daysSinceLast >= 7 : daysSinceLast >= 30;
 }
 
 export async function GET(req: Request) {
@@ -131,16 +101,12 @@ export async function GET(req: Request) {
     }
 
     let processed = 0;
-
-    // Primary path: use scheduled_audits table
     const schedules = await getScheduledAudits();
     const enabledSchedules = schedules.filter((s) => s.enabled);
 
     if (enabledSchedules.length > 0) {
       for (const schedule of enabledSchedules) {
-        if (!isDue(schedule.frequency, schedule.lastRunAt)) {
-          continue;
-        }
+        if (!isDue(schedule.frequency, schedule.lastRunAt)) continue;
 
         try {
           await generateMonthlyAudit(
@@ -150,22 +116,18 @@ export async function GET(req: Request) {
             schedule.userEmail,
             schedule.teamId
           );
-          await updateScheduledAudit(schedule.id, {
-            lastRunAt: new Date().toISOString(),
-          });
+          await updateScheduledAudit(schedule.id, { lastRunAt: new Date().toISOString() });
           processed++;
         } catch (e) {
-          console.error(`Failed to process scheduled audit ${schedule.id} for ${schedule.userEmail}:`, e);
+          console.error(`Failed scheduled audit ${schedule.id}:`, e);
         }
       }
-
       return NextResponse.json({ success: true, processedSchedules: processed });
     }
 
-    // Fallback: re-audit all users' most recent audit (legacy behavior)
+    // Fallback path
     const allAudits = await getAudits();
     const uniqueUserAudits = new Map<string, (typeof allAudits)[0]>();
-
     for (const audit of allAudits) {
       if (audit.userEmail && !uniqueUserAudits.has(audit.userEmail)) {
         uniqueUserAudits.set(audit.userEmail, audit);
@@ -174,22 +136,16 @@ export async function GET(req: Request) {
 
     for (const [, audit] of uniqueUserAudits) {
       try {
-        await generateMonthlyAudit(
-          audit.link,
-          audit.businessType,
-          audit.goals,
-          audit.userEmail!
-        );
+        await generateMonthlyAudit(audit.link, audit.businessType, audit.goals, audit.userEmail!);
         processed++;
       } catch (e) {
-        console.error(`Failed to process audit for ${audit.userEmail}:`, e);
+        console.error(`Failed fallback audit ${audit.userEmail}:`, e);
       }
     }
 
     return NextResponse.json({ success: true, processedUsers: processed, fallback: true });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
-    console.error("Cron Error:", message);
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

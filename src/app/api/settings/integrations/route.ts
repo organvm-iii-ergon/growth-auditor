@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { saveIntegration, getIntegrations, deleteIntegration } from "@/lib/db";
+import { IntegrationSchema } from "@/lib/schemas";
 
 export async function GET() {
   try {
@@ -24,11 +25,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { name, url, event } = await request.json();
-    if (!name || !url || !event) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    const body = await request.json();
+    const validation = IntegrationSchema.safeParse(body);
+    if (!validation.success) {
+      return NextResponse.json({ error: "Invalid integration data.", details: validation.error.format() }, { status: 400 });
     }
 
+    const { name, url, event } = validation.data;
     await saveIntegration(session.user.email, name, url, event);
     return NextResponse.json({ success: true });
   } catch (error: unknown) {
