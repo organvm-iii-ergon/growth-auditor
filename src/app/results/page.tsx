@@ -6,6 +6,7 @@ import Link from "next/link";
 import Loader from "@/components/Loader";
 import SignalPillarGrid from "@/components/SignalPillarGrid";
 import SignalPathNode from "@/components/SignalPathNode";
+import AlignmentSigil from "@/components/AlignmentSigil";
 import ChatBox from "@/components/ChatBox";
 import EmailGate from "@/components/EmailGate";
 import ShareButtons from "@/components/ShareButtons";
@@ -297,12 +298,9 @@ export default function ResultsPage() {
 
       <div className="container" style={{ width: "100%", maxWidth: "800px" }}>
         
-        {/* ICEBERG TIP: Visual Pillar Grid */}
+        {/* ICEBERG TIP: The Alignment Sigil */}
         <section style={{ marginBottom: "3rem" }}>
-          <h2 style={{ textAlign: "center", marginBottom: "1.5rem", fontSize: "1.25rem", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.1em" }}>
-            Alignment Signals
-          </h2>
-          {scores && <SignalPillarGrid scores={scores} />}
+          {scores && <AlignmentSigil scores={scores} />}
         </section>
 
         {/* SUBMERGED REPORT: Progressive Revelation */}

@@ -14,6 +14,12 @@ vi.mock("@/components/ChatBox", () => ({
   },
 }));
 
+vi.mock("@/components/AlignmentSigil", () => ({
+  default: function MockAlignmentSigil() {
+    return <div data-testid="alignment-sigil">Mock Alignment Sigil</div>;
+  },
+}));
+
 vi.mock("recharts", () => ({
   ResponsiveContainer: function MockResponsiveContainer({ children }: { children: React.ReactNode }) {
     return <div>{children}</div>;
