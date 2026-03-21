@@ -1,12 +1,21 @@
 import { NextResponse } from "next/server";
 import puppeteer from "puppeteer";
 import { auth } from "@/auth";
+import { createRateLimiter, getClientIP } from "@/lib/rate-limit";
+
+const rateLimiter = createRateLimiter({ max: 10, windowMs: 60 * 60 * 1000 });
 
 export async function POST(request: Request) {
   try {
     const session = await auth();
     if (!session?.user?.email) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const ip = getClientIP(request);
+    const { limited } = rateLimiter.check(ip);
+    if (limited) {
+      return NextResponse.json({ error: "Too many PDF requests. Try again later." }, { status: 429 });
     }
 
     const { html, filename = "audit-report.pdf" } = await request.json();
