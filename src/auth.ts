@@ -3,32 +3,12 @@ import Credentials from "next-auth/providers/credentials"
 import Google from "next-auth/providers/google"
 import GitHub from "next-auth/providers/github"
 
-// Lazy-load config and db to avoid triggering better-sqlite3 native module
-// at import time — this crashes Vercel's SSR runtime
-function safeGetConfig(key: string): string | null {
-  try {
-    const { getConfig } = require("./lib/config");
-    return getConfig(key);
-  } catch {
-    return null;
-  }
-}
+// Auth module must NOT import config.ts or db.ts — those pull in
+// better-sqlite3 (native C++ addon) which crashes Vercel's SSR runtime.
+// All config here uses environment variables only.
 
-async function safeGetSubscription(email: string) {
-  try {
-    const { getSubscription } = require("./lib/db");
-    return await getSubscription(email);
-  } catch {
-    return null;
-  }
-}
-
-const ADMIN_EMAILS = (() => {
-  const env = process.env.ADMIN_EMAILS;
-  if (env) return env.split(",");
-  const config = safeGetConfig("adminEmails");
-  return config ? config.split(",") : ["admin@growthauditor.ai"];
-})();
+const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || "admin@growthauditor.ai").split(",");
+const AUTH_PASSWORD = process.env.AUTH_PASSWORD || "cosmic"; // allow-secret
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
@@ -47,9 +27,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         password: { label: "Password", type: "password" }, // allow-secret
       },
       authorize: async (credentials) => {
-        // allow-secret
-        const password = safeGetConfig("authPassword") || "cosmic"; // allow-secret
-        if (credentials.password === password && typeof credentials.email === "string") { // allow-secret
+        if (credentials.password === AUTH_PASSWORD && typeof credentials.email === "string") { // allow-secret
           const isAdmin = ADMIN_EMAILS.some(e => credentials.email === e.trim());
           return {
             id: "1",
@@ -75,8 +53,15 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         const isAdmin = ADMIN_EMAILS.some(e => user.email === e.trim());
         token.isAdmin = isAdmin;
 
-        const sub = await safeGetSubscription(user.email as string);
-        token.isPro = sub?.plan === "pro" && sub?.status === "active";
+        // Subscription check — lazy import to avoid bundling better-sqlite3
+        // into the auth module's SSR bundle
+        try {
+          const db = await import("./lib/db");
+          const sub = await db.getSubscription(user.email as string);
+          token.isPro = sub?.plan === "pro" && sub?.status === "active";
+        } catch {
+          token.isPro = false;
+        }
       }
       return token;
     }
