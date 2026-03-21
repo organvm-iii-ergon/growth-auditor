@@ -12,6 +12,12 @@ vi.mock('next/navigation', () => ({
   },
 }));
 
+// Mock next-auth
+vi.mock('next-auth/react', () => ({
+  useSession: vi.fn(() => ({ data: null, status: 'unauthenticated' })),
+  SessionProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+}));
+
 describe('HomePage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -54,7 +60,8 @@ describe('HomePage', () => {
     expect(JSON.parse(sessionStorage.getItem('current_audit_request')!)).toEqual({
       link: 'test.com',
       businessType: 'Studio',
-      goals: 'Grow'
+      goals: 'Grow',
+      teamId: ''
     });
   });
 });

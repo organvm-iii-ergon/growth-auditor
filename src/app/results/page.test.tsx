@@ -2,6 +2,12 @@ import { render, screen } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import ResultsPage from "./page";
 
+// Mock next-auth
+vi.mock('next-auth/react', () => ({
+  useSession: vi.fn(() => ({ data: null, status: 'unauthenticated' })),
+  SessionProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+}));
+
 vi.mock("@/components/ChatBox", () => ({
   default: function MockChatBox() {
     return <div data-testid="chatbox">Mock ChatBox</div>;

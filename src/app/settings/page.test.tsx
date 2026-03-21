@@ -2,6 +2,19 @@ import { render, screen, fireEvent, act } from '@testing-library/react';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import SettingsPage from './page';
 
+// Mock next-auth
+vi.mock('next-auth/react', () => ({
+  useSession: vi.fn(() => ({ data: null, status: 'unauthenticated' })),
+  SessionProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+}));
+
+global.fetch = vi.fn(() => 
+  Promise.resolve({
+    ok: true,
+    json: () => Promise.resolve({}),
+  })
+) as any;
+
 describe('SettingsPage', () => {
   beforeEach(() => {
     localStorage.clear();

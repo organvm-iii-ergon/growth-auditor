@@ -1,6 +1,7 @@
 import NextAuth from "next-auth"
 import Credentials from "next-auth/providers/credentials"
 import { getConfig } from "./lib/config"
+import { getSubscription } from "./lib/db"
 
 const ADMIN_EMAILS = (() => {
   const env = process.env.ADMIN_EMAILS;
@@ -36,7 +37,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   callbacks: {
     async session({ session, token }) {
       if (token && session.user) {
-        (session.user as { isAdmin?: boolean }).isAdmin = token.isAdmin as boolean;
+        (session.user as any).isAdmin = token.isAdmin as boolean;
+        (session.user as any).isPro = token.isPro as boolean;
       }
       return session;
     },
@@ -44,6 +46,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (user) {
         const isAdmin = ADMIN_EMAILS.some(e => user.email === e.trim());
         token.isAdmin = isAdmin;
+        
+        const sub = await getSubscription(user.email as string);
+        token.isPro = sub?.plan === "pro" && sub?.status === "active";
       }
       return token;
     }

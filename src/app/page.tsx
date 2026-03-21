@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import ApiKeyInline from "@/components/ApiKeyInline";
 import AuditPresets from "@/components/AuditPresets";
 import { getStoredApiKey } from "@/services/aiProvider";
+import { useSession } from "next-auth/react";
+import type { TeamRecord } from "@/lib/db";
 
 // A simple moon phase calculation based on known new moon date
 function getMoonPhase() {
@@ -33,12 +35,15 @@ export default function HomePage() {
   const [formData, setFormData] = useState({
     link: "",
     businessType: "",
-    goals: ""
+    goals: "",
+    teamId: ""
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [planetaryWindow, setPlanetaryWindow] = useState("");
   const [totalAudits, setTotalAudits] = useState(0);
+  const [teams, setTeams] = useState<TeamRecord[]>([]);
+  const { data: session } = useSession();
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- hydration-safe: getMoonPhase uses Date.now(), must run client-side only
@@ -50,7 +55,14 @@ export default function HomePage() {
         if (data.totalAudits > 0) setTotalAudits(data.totalAudits);
       })
       .catch(() => {});
-  }, []);
+
+    if (session?.user?.email) {
+      fetch("/api/teams")
+        .then(res => res.json())
+        .then(data => setTeams(data))
+        .catch(() => {});
+    }
+  }, [session]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,7 +80,8 @@ export default function HomePage() {
     const auditRequest = { 
       link: formData.link, 
       businessType: formData.businessType, 
-      goals: formData.goals 
+      goals: formData.goals,
+      teamId: formData.teamId
     };
     
     // Store only the form data in sessionStorage, NOT the API key
@@ -183,6 +196,25 @@ export default function HomePage() {
                 onChange={(e) => setFormData({ ...formData, goals: e.target.value })}
               />
             </div>
+
+            {teams.length > 0 && (
+              <div className="form-group">
+                <label htmlFor="team">Assign to Team (Optional)</label>
+                <select
+                  id="team"
+                  className="input"
+                  value={formData.teamId}
+                  onChange={(e) => setFormData({ ...formData, teamId: e.target.value })}
+                >
+                  <option value="">Personal Audit</option>
+                  {teams.map((team) => (
+                    <option key={team.id} value={team.id}>
+                      {team.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             <ApiKeyInline />
 
