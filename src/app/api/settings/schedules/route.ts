@@ -2,10 +2,23 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import {
   getScheduledAudits,
+  getScheduledAuditById,
   saveScheduledAudit,
   updateScheduledAudit,
   deleteScheduledAudit,
+  getTeamMembers,
 } from "@/lib/db";
+
+async function canAccessSchedule(id: string, userEmail: string) {
+  const schedule = await getScheduledAuditById(id);
+  if (!schedule) return false;
+  if (schedule.userEmail === userEmail) return true;
+  if (schedule.teamId) {
+    const members = await getTeamMembers(schedule.teamId);
+    return members.some((m) => m.email === userEmail);
+  }
+  return false;
+}
 
 export async function GET() {
   try {
@@ -68,11 +81,19 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    if (!(session.user as any).isPro && !(session.user as any).isAdmin) {
+      return NextResponse.json({ error: "Pro subscription required" }, { status: 403 });
+    }
+
     const body = await request.json();
     const { id, ...updates } = body;
 
     if (!id) {
       return NextResponse.json({ error: "Missing schedule ID" }, { status: 400 });
+    }
+
+    if (!(await canAccessSchedule(id, session.user.email))) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     await updateScheduledAudit(id, updates);
@@ -90,11 +111,19 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    if (!(session.user as any).isPro && !(session.user as any).isAdmin) {
+      return NextResponse.json({ error: "Pro subscription required" }, { status: 403 });
+    }
+
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
 
     if (!id) {
       return NextResponse.json({ error: "Missing schedule ID" }, { status: 400 });
+    }
+
+    if (!(await canAccessSchedule(id, session.user.email))) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     await deleteScheduledAudit(id);

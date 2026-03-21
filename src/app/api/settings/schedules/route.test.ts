@@ -9,9 +9,11 @@ vi.mock("@/auth", () => ({
 
 vi.mock("@/lib/db", () => ({
   getScheduledAudits: vi.fn(),
+  getScheduledAuditById: vi.fn(),
   saveScheduledAudit: vi.fn(),
   updateScheduledAudit: vi.fn(),
   deleteScheduledAudit: vi.fn(),
+  getTeamMembers: vi.fn(),
 }));
 
 describe("Schedules API Route", () => {
@@ -81,6 +83,8 @@ describe("Schedules API Route", () => {
   describe("PUT", () => {
     it("updates a schedule", async () => {
       const payload = { id: "1", enabled: false };
+      (db.getScheduledAuditById as any).mockResolvedValue({ id: "1", userEmail: mockEmail });
+
       const req = new Request("http://localhost/api/settings/schedules", {
         method: "PUT",
         body: JSON.stringify(payload),
@@ -94,6 +98,8 @@ describe("Schedules API Route", () => {
 
   describe("DELETE", () => {
     it("deletes a schedule", async () => {
+      (db.getScheduledAuditById as any).mockResolvedValue({ id: "1", userEmail: mockEmail });
+
       const req = new Request("http://localhost/api/settings/schedules?id=1", {
         method: "DELETE",
       });

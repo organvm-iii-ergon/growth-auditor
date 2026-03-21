@@ -1,6 +1,18 @@
 import { describe, it, expect, vi } from "vitest";
 import { POST } from "./route";
 
+// Mock next/server
+vi.mock("next/server", () => ({
+  NextResponse: {
+    json: (body: any, init?: any) => new Response(JSON.stringify(body), { ...init, headers: { 'Content-Type': 'application/json' } }),
+  },
+}));
+
+// Mock auth
+vi.mock("@/auth", () => ({
+  auth: vi.fn().mockResolvedValue({ user: { email: "test@example.com" } }),
+}));
+
 // Mock puppeteer
 vi.mock("puppeteer", () => ({
   default: {
@@ -15,7 +27,23 @@ vi.mock("puppeteer", () => ({
 }));
 
 describe("PDF API Route", () => {
+  it("returns 401 if unauthorized", async () => {
+    const { auth } = await import("@/auth");
+    (auth as any).mockResolvedValue(null);
+
+    const req = new Request("http://localhost/api/pdf", {
+      method: "POST",
+      body: JSON.stringify({ html: "<h1>Test</h1>" }),
+    });
+
+    const res = await POST(req);
+    expect(res.status).toBe(401);
+  });
+
   it("returns 400 if HTML is missing", async () => {
+    const { auth } = await import("@/auth");
+    (auth as any).mockResolvedValue({ user: { email: "test@example.com" } });
+
     const req = new Request("http://localhost/api/pdf", {
       method: "POST",
       body: JSON.stringify({}),
@@ -28,6 +56,9 @@ describe("PDF API Route", () => {
   });
 
   it("returns a PDF buffer on success", async () => {
+    const { auth } = await import("@/auth");
+    (auth as any).mockResolvedValue({ user: { email: "test@example.com" } });
+
     const req = new Request("http://localhost/api/pdf", {
       method: "POST",
       body: JSON.stringify({ html: "<h1>Test</h1>" }),

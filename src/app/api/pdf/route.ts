@@ -1,8 +1,14 @@
 import { NextResponse } from "next/server";
 import puppeteer from "puppeteer";
+import { auth } from "@/auth";
 
 export async function POST(request: Request) {
   try {
+    const session = await auth();
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { html, filename = "audit-report.pdf" } = await request.json();
 
     if (!html) {

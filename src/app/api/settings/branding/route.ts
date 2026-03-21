@@ -10,7 +10,13 @@ export async function GET() {
     }
 
     const sub = await getSubscription(session.user.email);
-    return NextResponse.json(sub || {});
+    if (!sub) return NextResponse.json({});
+
+    return NextResponse.json({
+      plan: sub.plan,
+      status: sub.status,
+      customLogoUrl: sub.customLogoUrl,
+    });
   } catch (error: unknown) {
     console.error("GET Branding Error:", error);
     return NextResponse.json({ error: "Failed to fetch branding" }, { status: 500 });

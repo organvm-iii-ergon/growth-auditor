@@ -49,7 +49,7 @@ Pro users benefit from a deep-crawl of their digital assets. The scraper follows
 The history page visualizes the evolution of the four cosmic pillars:
 - **Mercury (Communication):** Content quality and clarity.
 - **Venus (Aesthetic):** Visual appeal and branding.
-- **Mars (Drive):** Call-to-actions and conversion energy.
+- **Mars (Drive):** Calls to action and conversion energy.
 - **Saturn (Structure):** Technical SEO and site performance.
 
 ### 3. White-Label Reporting
