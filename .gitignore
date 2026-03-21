@@ -28,6 +28,9 @@
 .DS_Store
 *.pem
 
+# override global gitignore that excludes /.config
+!/.config/
+
 # debug
 npm-debug.log*
 yarn-debug.log*
