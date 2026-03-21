@@ -5,51 +5,32 @@ export const metadata: Metadata = {
   description: "The Four Pillars of Cosmic Alignment: Mercury, Venus, Mars, and Saturn. How Growth Auditor AI decodes digital bottlenecks.",
 };
 
+const PILLARS = [
+  { name: "Mercury", glyph: "☿", color: "#7000ff", label: "Communication", desc: "How clearly does your website communicate its value? We analyze copy density and messaging alignment." },
+  { name: "Venus", glyph: "♀", color: "#00d4ff", label: "Aesthetic", desc: "Does your brand possess visual magnetism? We evaluate color psychology and design harmony." },
+  { name: "Mars", glyph: "♂", color: "#ff0070", label: "Drive", desc: "Are your actions aggressive enough? We find where momentum stalls in the conversion journey." },
+  { name: "Saturn", glyph: "♄", color: "#ffcc00", label: "Structure", desc: "Is your technical foundation solid? We pull PageSpeed and Core Web Vitals to ensure stability." },
+];
+
 export default function AboutPage() {
   return (
     <main className="main">
       <div className="hero">
-        <div className="astro-badge">
-          <span aria-hidden="true">✦</span>
-          The Cosmic Methodology
-        </div>
-        <h1>Aligning Data with the Stars</h1>
-        <p>How Growth Auditor AI decodes your digital bottlenecks.</p>
+        <div className="astro-badge">✦ Strategic Foundation</div>
+        <h1>The Cosmic Pillars</h1>
+        <p>Four primary signals that define your digital presence.</p>
       </div>
 
-      <div className="container" style={{ maxWidth: "800px" }}>
-        <div className="card">
-          <h2 style={{ color: "var(--secondary)", marginBottom: "1rem" }}>The Four Pillars of Alignment</h2>
-          <p style={{ color: "var(--text-muted)", marginBottom: "2rem", lineHeight: "1.7" }}>
-            Traditional marketing tools give you cold data. We translate that data into intuitive, actionable &ldquo;energies&rdquo; so you can manifest growth naturally.
-          </p>
-
-          <ul style={{ listStyle: "none", padding: 0, display: "flex", flexDirection: "column", gap: "2rem" }}>
-            <li>
-              <h3 style={{ color: "#fff", marginBottom: "0.5rem" }}>Mercury (Communication)</h3>
-              <p style={{ color: "var(--text-muted)", lineHeight: "1.6" }}>
-                How clearly does your website communicate its value proposition? We analyze your H1s, meta descriptions, and copy density to ensure your message is received loud and clear.
-              </p>
-            </li>
-            <li>
-              <h3 style={{ color: "#fff", marginBottom: "0.5rem" }}>Venus (Aesthetic)</h3>
-              <p style={{ color: "var(--text-muted)", lineHeight: "1.6" }}>
-                Does your brand possess visual magnetism? Using multi-modal AI vision, we evaluate your color psychology, layout friction, and overall design harmony.
-              </p>
-            </li>
-            <li>
-              <h3 style={{ color: "#fff", marginBottom: "0.5rem" }}>Mars (Drive)</h3>
-              <p style={{ color: "var(--text-muted)", lineHeight: "1.6" }}>
-                Are your Call-to-Actions (CTAs) aggressive enough to drive conversion? We map the user journey to find where momentum stalls.
-              </p>
-            </li>
-            <li>
-              <h3 style={{ color: "#fff", marginBottom: "0.5rem" }}>Saturn (Structure)</h3>
-              <p style={{ color: "var(--text-muted)", lineHeight: "1.6" }}>
-                Is your technical foundation solid? We pull live Google PageSpeed Insights, Core Web Vitals, and accessibility scores to ensure you aren&apos;t leaking traffic.
-              </p>
-            </li>
-          </ul>
+      <div className="container" style={{ maxWidth: "900px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(350px, 1fr))", gap: "2rem", marginBottom: "6rem" }}>
+          {PILLARS.map(p => (
+            <div key={p.name} className="card" style={{ padding: "3rem", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
+              <div style={{ fontSize: "4rem", color: p.color, marginBottom: "1.5rem", textShadow: `0 0 30px ${p.color}44` }}>{p.glyph}</div>
+              <h2 style={{ fontSize: "1.5rem", color: "#fff", marginBottom: "0.25rem" }}>{p.name}</h2>
+              <div style={{ fontSize: "0.8rem", color: p.color, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.15em", marginBottom: "1.5rem" }}>{p.label}</div>
+              <p style={{ color: "var(--text-muted)", lineHeight: "1.6" }}>{p.desc}</p>
+            </div>
+          ))}
         </div>
       </div>
     </main>
