@@ -10,8 +10,19 @@ import crypto from "crypto";
 import { auth } from "@/auth";
 import { createRateLimiter, getClientIP } from "@/lib/rate-limit";
 import { createAIModel, type AIProviderType } from "@/services/aiModelFactory";
+import { evaluateAudit } from "@/services/evaluator";
+import { z } from "zod";
 
 const rateLimiter = createRateLimiter({ max: 5, windowMs: 60 * 60 * 1000 });
+
+const auditSchema = z.object({
+  link: z.string().url(),
+  businessType: z.string().min(2),
+  goals: z.string().min(5),
+  teamId: z.string().optional(),
+});
+
+export const runtime = "edge";
 
 export async function POST(request: Request) {
   try {
@@ -26,7 +37,7 @@ export async function POST(request: Request) {
       );
     }
 
-    void remaining; // Available for response headers if needed
+    void remaining;
 
     // 1. Extract API Key from Authorization header securely
     const authHeader = request.headers.get("Authorization");
@@ -39,19 +50,23 @@ export async function POST(request: Request) {
     // 2. Determine AI provider from header (defaults to gemini)
     const provider = (request.headers.get("X-AI-Provider") || "gemini") as AIProviderType;
 
-    const { link, businessType, goals } = await request.json();
+    const body = await request.json();
+    const validationResult = auditSchema.safeParse(body);
 
-    if (!link || !businessType || !goals) {
-      return NextResponse.json({ error: "Missing required fields: link, businessType, goals." }, { status: 400 });
+    if (!validationResult.success) {
+      return NextResponse.json({ error: "Invalid alignment data provided.", details: validationResult.error.format() }, { status: 400 });
     }
 
+    const { link, businessType, goals, teamId } = validationResult.data;
+
     const session = await auth();
+    const isPro = (session?.user as any)?.isPro || (session?.user as any)?.isAdmin;
 
     // 3. Fetch context in parallel to save time
     const [scrapedContent, screenshotBase64, seoData] = await Promise.all([
-      scrapeWebsite(link),
-      captureScreenshot(link).catch(() => null), // Fail gracefully if puppeteer breaks
-      getPageSpeedInsights(link).catch(() => null) // Fail gracefully if PageSpeed fails
+      scrapeWebsite(link, isPro ? 3 : 1),
+      captureScreenshot(link).catch(() => null),
+      getPageSpeedInsights(link).catch(() => null)
     ]);
 
     // 4. Build prompt and call AI via Vercel AI SDK (multi-provider)
@@ -84,13 +99,30 @@ export async function POST(request: Request) {
 
     let parsedResult;
     try {
-      // Extract JSON from the response — some providers wrap it in markdown code fences
       const jsonMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
       const jsonText = jsonMatch ? jsonMatch[1].trim() : text.trim();
       parsedResult = JSON.parse(jsonText);
     } catch {
       console.error("Failed to parse AI JSON:", text);
       throw new Error("AI returned malformed JSON");
+    }
+
+    // 4.5 Evaluation Loop (LLM-as-a-Judge)
+    const evaluation = await evaluateAudit(parsedResult.markdownAudit, provider, apiKey);
+    if (!evaluation.passed) {
+      const retryPrompt = `${prompt}\n\nREFINEMENT NEEDED: Your previous attempt was scored ${evaluation.score}/100. Feedback: ${evaluation.feedback}. Please improve the audit based on this feedback while maintaining the same JSON structure.`;
+      
+      const retryResult = await generateText({
+        model,
+        messages: [{
+          role: "user",
+          content: [{ type: "text", text: retryPrompt }],
+        }],
+      });
+
+      const retryJsonMatch = retryResult.text.match(/```(?:json)?\s*([\s\S]*?)```/);
+      const retryJsonText = retryJsonMatch ? retryJsonMatch[1].trim() : retryResult.text.trim();
+      parsedResult = JSON.parse(retryJsonText);
     }
 
     // 5. Save to database for Persistent History
@@ -100,13 +132,13 @@ export async function POST(request: Request) {
       await saveAudit({
         id: auditId,
         userEmail: session?.user?.email || undefined,
+        teamId: teamId || undefined,
         link,
         businessType,
         goals,
         markdownAudit: parsedResult.markdownAudit,
         scores: JSON.stringify(parsedResult.scores || {})
       });
-      // Fire webhook in background after successful save
       sendAuditWebhook({
         id: auditId,
         link,
@@ -117,10 +149,8 @@ export async function POST(request: Request) {
       }).catch(() => {});
     } catch (dbError) {
       console.error("Failed to save audit to DB:", dbError);
-      // We don't fail the request if DB fails, just log it
     }
 
-    // Return the id, audit text, and scores to the client
     return NextResponse.json({
       id: auditId,
       audit: parsedResult.markdownAudit,
@@ -128,19 +158,10 @@ export async function POST(request: Request) {
     });
   } catch (error: unknown) {
     console.error("Audit Error:", error);
-
-    // Map specific AI provider errors
     const errorMessage = error instanceof Error ? error.message : "";
-    if (errorMessage.includes("429") || errorMessage.includes("Quota") || errorMessage.includes("rate")) {
-      return NextResponse.json({ error: "Rate limit exceeded. Please wait a moment before trying again." }, { status: 429 });
+    if (errorMessage.includes("429") || errorMessage.includes("Quota")) {
+      return NextResponse.json({ error: "Rate limit exceeded. Please wait a moment." }, { status: 429 });
     }
-    if (errorMessage.includes("API key not valid") || errorMessage.includes("401") || errorMessage.includes("Unauthorized") || errorMessage.includes("invalid x-api-key")) {
-      return NextResponse.json({ error: "Invalid API Key. Please check your settings." }, { status: 401 });
-    }
-    if (errorMessage.includes("Safety")) {
-      return NextResponse.json({ error: "The request was blocked by AI safety filters. Please try rephrasing your goals." }, { status: 400 });
-    }
-
-    return NextResponse.json({ error: "An unexpected cosmic interference occurred. Failed to generate audit." }, { status: 500 });
+    return NextResponse.json({ error: "An unexpected cosmic interference occurred." }, { status: 500 });
   }
 }

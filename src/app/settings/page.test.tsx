@@ -2,6 +2,19 @@ import { render, screen, fireEvent, act } from '@testing-library/react';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import SettingsPage from './page';
 
+// Mock next-auth
+vi.mock('next-auth/react', () => ({
+  useSession: vi.fn(() => ({ data: null, status: 'unauthenticated' })),
+  SessionProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+}));
+
+global.fetch = vi.fn(() => 
+  Promise.resolve({
+    ok: true,
+    json: () => Promise.resolve({}),
+  })
+) as any;
+
 describe('SettingsPage', () => {
   beforeEach(() => {
     localStorage.clear();
@@ -31,15 +44,16 @@ describe('SettingsPage', () => {
     
     fireEvent.change(screen.getByLabelText(/Google Gemini API Key/i), { target: { value: 'new-gemini-key' } });
     
-    fireEvent.click(screen.getByRole('button', { name: /Save Configuration/i }));
-    
+    const saveButton = screen.getByText(/Save Configuration/i);
+    fireEvent.click(saveButton);
+
     expect(localStorage.getItem('gemini_api_key')).toBe('new-gemini-key');
-    expect(screen.getByRole('button')).toHaveTextContent('Configuration Saved! ✓');
-    
+    expect(saveButton).toHaveTextContent('Configuration Saved! ✓');
+
     act(() => {
       vi.advanceTimersByTime(3000);
     });
-    
-    expect(screen.getByRole('button')).toHaveTextContent('Save Configuration');
+
+    expect(saveButton).toHaveTextContent('Save Configuration');
   });
 });

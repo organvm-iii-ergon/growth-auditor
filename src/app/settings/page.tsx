@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
+import { useSession } from "next-auth/react";
 import {
   AI_PROVIDERS,
   AIProvider,
@@ -8,11 +10,15 @@ import {
   getProviderConfig,
   getStoredApiKey,
 } from "@/services/aiProvider";
+import ProBadge from "@/components/ProBadge";
 
 export default function SettingsPage() {
   const [provider, setProvider] = useState<AIProvider>("gemini");
   const [apiKey, setApiKey] = useState("");
+  const [logoUrl, setLogoUrl] = useState("");
   const [saved, setSaved] = useState(false);
+  const [brandingSaved, setBrandingSaved] = useState(false);
+  const { data: session } = useSession();
 
   useEffect(() => {
     // Load provider and corresponding key from localStorage on mount
@@ -21,7 +27,16 @@ export default function SettingsPage() {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- localStorage unavailable during SSR, must set in effect
     setProvider(storedProvider);
     setApiKey(storedKey);
-  }, []);
+
+    if (session?.user?.email) {
+      fetch("/api/settings/branding")
+        .then(res => res.json())
+        .then(data => {
+          if (data.customLogoUrl) setLogoUrl(data.customLogoUrl);
+        })
+        .catch(() => {});
+    }
+  }, [session]);
 
   const handleProviderChange = (newProvider: AIProvider) => {
     setProvider(newProvider);
@@ -44,10 +59,40 @@ export default function SettingsPage() {
     setTimeout(() => setSaved(false), 3000);
   };
 
+  const handleBrandingSave = async () => {
+    try {
+      const res = await fetch("/api/settings/branding", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ logoUrl }),
+      });
+      if (!res.ok) throw new Error("Failed to save branding");
+      setBrandingSaved(true);
+      setTimeout(() => setBrandingSaved(false), 3000);
+    } catch (err) {
+      console.error(err);
+      alert("Pro subscription required for custom branding.");
+    }
+  };
+
+  const handleDeleteData = async () => {
+    if (!confirm("Are you sure? This will permanently erase ALL your audits, schedules, and settings. This cannot be undone.")) return;
+    try {
+      const res = await fetch("/api/settings/data/forget", { method: "DELETE" });
+      if (res.ok) {
+        alert("Your data has been erased. You will now be signed out.");
+        window.location.href = "/";
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Failed to delete data.");
+    }
+  };
+
   return (
     <main className="main">
       <div className="hero">
-        <h1>Settings</h1>
+        <h1>Settings {((session?.user as any)?.isPro || (session?.user as any)?.isAdmin) && <ProBadge />}</h1>
         <p>Configure your AI provider and API key to run audits for free.</p>
       </div>
 
@@ -102,6 +147,44 @@ export default function SettingsPage() {
         <button className="btn" onClick={saveKeys}>
           {saved ? "Configuration Saved! ✓" : "Save Configuration"}
         </button>
+
+        <div style={{ marginTop: "2rem", paddingTop: "2rem", borderTop: "1px solid rgba(255,255,255,0.1)" }}>
+          <Link href="/settings/schedules" className="btn btn-secondary" style={{ display: "block", textAlign: "center" }}>
+            Manage Scheduled Audits
+          </Link>
+        </div>
+
+        {((session?.user as any)?.isPro || (session?.user as any)?.isAdmin) && (
+          <div style={{ marginTop: "2rem", paddingTop: "2rem", borderTop: "1px solid rgba(255,255,255,0.1)" }}>
+            <h3 style={{ marginBottom: "1rem" }}>Agency Branding</h3>
+            <div className="form-group">
+              <label htmlFor="logoUrl">Custom Logo URL (for PDFs)</label>
+              <input
+                id="logoUrl"
+                className="input"
+                type="url"
+                placeholder="https://youragency.com/logo.png"
+                value={logoUrl}
+                onChange={(e) => setLogoUrl(e.target.value)}
+              />
+            </div>
+            <button className="btn" onClick={handleBrandingSave}>
+              {brandingSaved ? "Branding Saved! ✓" : "Update Branding"}
+            </button>
+          </div>
+        )}
+
+        <div style={{ marginTop: "2rem", paddingTop: "2rem", borderTop: "1px solid rgba(255,255,255,0.1)" }}>
+          <h3 style={{ marginBottom: "1rem" }}>Data & Privacy</h3>
+          <div style={{ display: "flex", gap: "1rem" }}>
+            <a href="/api/settings/data/export" className="btn btn-secondary" style={{ flex: 1, textAlign: "center" }}>
+              Export My Data (JSON)
+            </a>
+            <button onClick={handleDeleteData} className="btn" style={{ flex: 1, backgroundColor: "transparent", color: "var(--accent)", border: "1px solid var(--accent)" }}>
+              Forget Me (Delete All)
+            </button>
+          </div>
+        </div>
 
         <p
           style={{

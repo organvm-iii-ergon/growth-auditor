@@ -11,6 +11,8 @@ import { createAIModel, type AIProviderType } from "@/services/aiModelFactory";
 
 const rateLimiter = createRateLimiter({ max: 5, windowMs: 60 * 60 * 1000 });
 
+export const runtime = "edge";
+
 export async function POST(request: Request) {
   try {
     // 0. Rate limiting
@@ -40,7 +42,7 @@ export async function POST(request: Request) {
     // 2. Determine AI provider from header (defaults to gemini)
     const provider = (request.headers.get("X-AI-Provider") || "gemini") as AIProviderType;
 
-    const { link, businessType, goals } = await request.json();
+    const { link, businessType, goals, teamId } = await request.json();
 
     if (!link || !businessType || !goals) {
       return new Response(
@@ -50,10 +52,11 @@ export async function POST(request: Request) {
     }
 
     const session = await auth();
+    const isPro = (session?.user as any)?.isPro || (session?.user as any)?.isAdmin;
 
     // 3. Fetch context in parallel
     const [scrapedContent, screenshotBase64, seoData] = await Promise.all([
-      scrapeWebsite(link),
+      scrapeWebsite(link, isPro ? 3 : 1),
       captureScreenshot(link).catch(() => null),
       getPageSpeedInsights(link).catch(() => null),
     ]);
@@ -78,6 +81,7 @@ export async function POST(request: Request) {
           await saveAudit({
             id: auditId,
             userEmail: session?.user?.email || undefined,
+            teamId: teamId || undefined,
             link,
             businessType,
             goals,

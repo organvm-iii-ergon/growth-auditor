@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { Resend } from "resend";
+import { updateSubscription } from "@/lib/db";
 
 const stripeSecret = process.env.STRIPE_SECRET_KEY || "sk_test_placeholder";
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || "whsec_placeholder";
@@ -37,6 +38,7 @@ export async function POST(req: Request) {
     if (email) {
       try {
         if (isSubscription) {
+          await updateSubscription(email, "pro", "active");
           await resend.emails.send({
             from: "Growth Auditor <hello@growthauditor.ai>",
             to: email,
@@ -75,6 +77,7 @@ export async function POST(req: Request) {
     const email = subscription.metadata?.userEmail;
 
     if (email) {
+      await updateSubscription(email, "basic", "inactive");
       console.log("Subscription canceled for", email);
     }
   }
@@ -84,6 +87,8 @@ export async function POST(req: Request) {
     const email = subscription.metadata?.userEmail;
 
     if (email) {
+      const status = subscription.status === "active" ? "active" : "inactive";
+      await updateSubscription(email, "pro", status);
       console.log("Subscription updated for", email);
     }
   }

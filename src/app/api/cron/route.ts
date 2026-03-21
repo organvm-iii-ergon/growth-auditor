@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
-import { getAudits, saveAudit, getScheduledAudits, updateScheduledAudit } from "@/lib/db";
+import { getAudits, saveAudit, getScheduledAudits, updateScheduledAudit, getSubscription, getTeamMembers } from "@/lib/db";
 import { scrapeWebsite } from "@/services/scraper";
 import { getCosmicAuditPrompt } from "@/services/promptTemplates";
 import { captureScreenshot } from "@/services/vision";
 import { getPageSpeedInsights } from "@/services/pagespeed";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { generateText } from "ai";
+import { createAIModel } from "@/services/aiModelFactory";
 import { Resend } from "resend";
 import crypto from "crypto";
 
@@ -14,50 +15,55 @@ async function generateMonthlyAudit(
   link: string,
   businessType: string,
   goals: string,
-  userEmail?: string
+  userEmail: string,
+  teamId?: string
 ): Promise<void> {
-  const geminiKey = process.env.GEMINI_API_KEY;
-  if (!geminiKey) {
+  // Use server key for cron
+  const apiKey = process.env.GEMINI_API_KEY; // allow-secret
+  if (!apiKey) {
     console.error("GEMINI_API_KEY not set for monthly audit");
     return;
   }
 
+  // Check Pro status
+  const sub = await getSubscription(userEmail);
+  const isPro = sub?.plan === "pro" && sub?.status === "active";
+
   const [scrapedContent, screenshotBase64, seoData] = await Promise.all([
-    scrapeWebsite(link).catch(() => ""),
+    scrapeWebsite(link, isPro ? 3 : 1).catch(() => ""),
     captureScreenshot(link).catch(() => null),
     getPageSpeedInsights(link).catch(() => null),
   ]);
 
-  const genAI = new GoogleGenerativeAI(geminiKey);
-  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
+  const model = createAIModel("gemini", apiKey);
   const prompt = getCosmicAuditPrompt(link, businessType, goals, scrapedContent, seoData);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const parts: any[] = [{ text: prompt }];
-  if (screenshotBase64) {
-    parts.push({
-      inlineData: {
-        data: screenshotBase64,
-        mimeType: "image/jpeg",
-      },
-    });
-  }
-
-  const result = await model.generateContent({
-    contents: [{ role: "user", parts }],
-    generationConfig: {
-      responseMimeType: "application/json",
-    },
+  const { text } = await generateText({
+    model,
+    messages: [{
+      role: "user",
+      content: [
+        { type: "text", text: prompt },
+        ...(screenshotBase64 ? [{ type: "image" as const, image: screenshotBase64, mimeType: "image/jpeg" as const }] : [])
+      ],
+    }],
   });
 
-  const text = (await result.response).text();
-  const parsedResult = JSON.parse(text);
+  let parsedResult;
+  try {
+    const jsonMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+    const jsonText = jsonMatch ? jsonMatch[1].trim() : text.trim();
+    parsedResult = JSON.parse(jsonText);
+  } catch {
+    console.error("Failed to parse AI JSON in cron:", text);
+    return;
+  }
 
   const auditId = crypto.randomUUID();
   await saveAudit({
     id: auditId,
     userEmail,
+    teamId,
     link,
     businessType,
     goals,
@@ -65,26 +71,42 @@ async function generateMonthlyAudit(
     scores: JSON.stringify(parsedResult.scores || {}),
   });
 
-  if (userEmail && resend) {
-    const scores = parsedResult.scores || {};
-    await resend.emails.send({
-      from: "Growth Auditor <hello@growthauditor.ai>",
-      to: userEmail,
-      subject: "Your Monthly Cosmic Delta Report ✦",
-      html: `
-        <h1>Your Monthly Alignment Report</h1>
-        <p>Your scores have evolved:</p>
-        <ul>
-          <li>Mercury (Communication): ${scores.communication}/100</li>
-          <li>Venus (Aesthetic): ${scores.aesthetic}/100</li>
-          <li>Mars (Drive): ${scores.drive}/100</li>
-          <li>Saturn (Structure): ${scores.structure}/100</li>
-        </ul>
-        <p>Log in to see your full audit.</p>
-        <p>Stay cosmic,</p>
-        <p>The Growth Auditor Team</p>
-      `,
+  // Notify user and team members
+  const recipients = [userEmail];
+  if (teamId) {
+    const members = await getTeamMembers(teamId);
+    members.forEach(m => {
+      if (!recipients.includes(m.email)) recipients.push(m.email);
     });
+  }
+
+  if (resend) {
+    const scores = parsedResult.scores || {};
+    try {
+      await resend.emails.send({
+        from: "Growth Auditor <hello@growthauditor.ai>",
+        to: recipients,
+        subject: "Your Cosmic Alignment Has Evolved ✦",
+        html: `
+          <h1>Growth Strategy Updated</h1>
+          <p>The cosmic cycle has completed. We've generated a new audit for <strong>${link}</strong>.</p>
+          <div style="background: #0a0a1a; color: #fff; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <p><strong>Current Alignment Scores:</strong></p>
+            <ul>
+              <li>Mercury (Communication): ${scores.communication}/100</li>
+              <li>Venus (Aesthetic): ${scores.aesthetic}/100</li>
+              <li>Mars (Drive): ${scores.drive}/100</li>
+              <li>Saturn (Structure): ${scores.structure}/100</li>
+            </ul>
+          </div>
+          <p><a href="${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}/history">View full evolution in your archive.</a></p>
+          <p>Stay cosmic,</p>
+          <p>The Growth Auditor Team</p>
+        `,
+      });
+    } catch (e) {
+      console.error("Failed to send cron emails:", e);
+    }
   }
 }
 
@@ -125,7 +147,8 @@ export async function GET(req: Request) {
             schedule.link,
             schedule.businessType,
             schedule.goals,
-            schedule.userEmail
+            schedule.userEmail,
+            schedule.teamId
           );
           await updateScheduledAudit(schedule.id, {
             lastRunAt: new Date().toISOString(),

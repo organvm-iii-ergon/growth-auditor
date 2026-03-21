@@ -7,6 +7,7 @@ import Loader from "@/components/Loader";
 import { TrendSparkline } from "@/components/TrendSparkline";
 import { DeltaBadge } from "@/components/DeltaBadge";
 import { AuditCompare } from "@/components/AuditCompare";
+import ScoreTrendChart from "@/components/ScoreTrendChart";
 
 interface Scores {
   communication?: number;
@@ -36,6 +37,7 @@ export default function HistoryPage() {
   const [error, setError] = useState("");
   const [compareAudits, setCompareAudits] = useState<[AuditRecord, AuditRecord] | null>(null);
   const [compareSelection, setCompareSelection] = useState<Map<string, AuditRecord>>(new Map());
+  const [showTrendChart, setShowTrendChart] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchHistory = async () => {
@@ -123,6 +125,7 @@ export default function HistoryPage() {
             const latestScores = parseScores(latest.scores);
             const previousScores = previous ? parseScores(previous.scores) : null;
             const selectedForCompare = compareSelection.get(link);
+            const isShowingChart = showTrendChart === link;
 
             return (
               <div key={link}>
@@ -134,14 +137,34 @@ export default function HistoryPage() {
                       color: "var(--text-muted)",
                       marginBottom: "0.5rem",
                       paddingLeft: "0.25rem",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center"
                     }}
                   >
-                    {link} &mdash; {groupAudits.length} audits
-                    {selectedForCompare && (
-                      <span style={{ marginLeft: "0.75rem", color: "var(--secondary)" }}>
-                        1 selected for comparison &mdash; pick another
-                      </span>
-                    )}
+                    <div>
+                      {link} &mdash; {groupAudits.length} audits
+                      {selectedForCompare && (
+                        <span style={{ marginLeft: "0.75rem", color: "var(--secondary)" }}>
+                          1 selected for comparison &mdash; pick another
+                        </span>
+                      )}
+                    </div>
+                    <button 
+                      onClick={() => setShowTrendChart(isShowingChart ? null : link)}
+                      style={{ background: "none", border: "none", color: "var(--primary)", cursor: "pointer", fontSize: "0.8rem" }}
+                    >
+                      {isShowingChart ? "Hide Trend Chart" : "Show Trend Chart"}
+                    </button>
+                  </div>
+                )}
+
+                {isShowingChart && (
+                  <div className="card" style={{ marginBottom: "1rem", padding: "1rem" }}>
+                    <ScoreTrendChart data={groupAudits.slice().reverse().map(a => ({
+                      date: a.createdAt!,
+                      scores: parseScores(a.scores) as any
+                    }))} />
                   </div>
                 )}
 

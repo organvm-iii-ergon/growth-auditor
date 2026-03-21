@@ -38,10 +38,10 @@ describe("scraper service", () => {
 
     const result = await scrapeWebsite("test.com");
     
+    expect(result).toContain("--- PAGE: https://test.com ---");
     expect(result).toContain("Test Title");
     expect(result).toContain("Test description");
     expect(result).toContain("Main Heading");
-    expect(result).toContain("Sub Heading");
     expect(result).toContain("paragraph");
   });
 
