@@ -17,7 +17,7 @@ describe("VaultPage", () => {
     vi.mocked(useSession).mockReturnValue({ data: { user: { isPro: false } } } as any);
 
     render(<VaultPage />);
-    expect(screen.getByText(/The Vault is Locked/i)).toBeInTheDocument();
+    expect(screen.getByText(/The Vault is Submerged/i)).toBeInTheDocument();
   });
 
   it("shows resources for pro users", () => {

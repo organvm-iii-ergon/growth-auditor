@@ -1,20 +1,22 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
+import CosmicIcon, { IconType } from "./CosmicIcons";
 
 interface Pillar {
   id: string;
   name: string;
-  glyph: string;
+  icon: IconType;
   color: string;
   description: string;
 }
 
 const PILLARS: Pillar[] = [
-  { id: "communication", name: "Mercury", glyph: "☿", color: "#7000ff", description: "Communication & Messaging Clarity" },
-  { id: "aesthetic", name: "Venus", glyph: "♀", color: "#00d4ff", description: "Aesthetic & Brand Attraction" },
-  { id: "drive", name: "Mars", glyph: "♂", color: "#ff0070", description: "Drive & Conversion Power" },
-  { id: "structure", name: "Saturn", glyph: "♄", color: "#ffcc00", description: "Structure & Technical Foundation" },
+  { id: "communication", name: "Mercury", icon: "mercury", color: "#7000ff", description: "This strategic pillar requires direct alignment. Access the [The Oracle] for deep-disclosure of your messaging bottlenecks." },
+  { id: "aesthetic", name: "Venus", icon: "venus", color: "#00d4ff", description: "Visual magnetism is a proprietary ORGANVM metric. Inquire via [The Builder] to unlock the full aesthetic blueprint." },
+  { id: "drive", name: "Mars", icon: "mars", color: "#ff0070", description: "Conversion energy is currently submerged. Deep-disclosure available only through professional consulting." },
+  { id: "structure", name: "Saturn", icon: "saturn", color: "#ffcc00", description: "Technical stability is the bedrock of manifestation. Detailed SEO playbooks are gated behind the [Growth Vault]." },
 ];
 
 export default function SignalPillarGrid({ scores }: { scores: any }) {
@@ -25,8 +27,8 @@ export default function SignalPillarGrid({ scores }: { scores: any }) {
       <div style={{ 
         display: "grid", 
         gridTemplateColumns: "repeat(2, 1fr)", 
-        gap: "1rem",
-        marginBottom: "1.5rem" 
+        gap: "1.5rem",
+        marginBottom: "2rem" 
       }}>
         {PILLARS.map((pillar) => {
           const score = scores[pillar.id] || 0;
@@ -38,25 +40,47 @@ export default function SignalPillarGrid({ scores }: { scores: any }) {
               onClick={() => setActivePillar(isActive ? null : pillar.id)}
               className="card"
               style={{
-                padding: "1.5rem 1rem",
+                padding: "2.5rem 1rem",
                 textAlign: "center",
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
-                gap: "0.5rem",
+                gap: "1rem",
                 borderColor: isActive ? pillar.color : "var(--glass-border)",
-                borderWidth: isActive ? "2px" : "1px",
-                transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                transform: isActive ? "scale(1.02)" : "scale(1)",
+                borderWidth: "1px",
+                transition: "all 0.4s cubic-bezier(0.23, 1, 0.32, 1)",
                 cursor: "pointer",
-                background: isActive ? `rgba(${parseInt(pillar.color.slice(1,3), 16)}, ${parseInt(pillar.color.slice(3,5), 16)}, ${parseInt(pillar.color.slice(5,7), 16)}, 0.1)` : "var(--glass-bg)"
+                background: isActive ? "rgba(255,255,255,0.08)" : "var(--glass-bg)",
+                overflow: "hidden"
               }}
             >
-              <span style={{ fontSize: "2.5rem", color: pillar.color, textShadow: `0 0 15px ${pillar.color}44` }}>
-                {pillar.glyph}
-              </span>
-              <div style={{ fontSize: "1.5rem", fontWeight: 800 }}>{score}</div>
-              <div style={{ fontSize: "0.7rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--text-muted)" }}>
+              {/* TRANSPARENT CUT-OUT ICON */}
+              <div style={{ 
+                width: "60px", 
+                height: "60px", 
+                position: "relative",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                background: "white", // The "filler" that gets cut out
+                borderRadius: "12px",
+                mixBlendMode: "lighten" // Magic blend mode to make white transparent against dark backgrounds? No.
+              }}>
+                <div style={{ 
+                  width: "100%", 
+                  height: "100%", 
+                  background: "black", 
+                  position: "absolute",
+                  top: 0, left: 0,
+                  zIndex: 1,
+                  mixBlendMode: "destination-out" as any
+                }}>
+                   <CosmicIcon type={pillar.icon} size="100%" style={{ color: "white" }} />
+                </div>
+              </div>
+
+              <div style={{ fontSize: "2rem", fontWeight: 900, letterSpacing: "-0.05em", color: "#fff" }}>{score}</div>
+              <div style={{ fontSize: "0.75rem", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.2em", color: pillar.color }}>
                 {pillar.name}
               </div>
             </button>
@@ -68,24 +92,23 @@ export default function SignalPillarGrid({ scores }: { scores: any }) {
         <div 
           className="card" 
           style={{ 
-            animation: "fadeIn 0.4s ease-out",
-            padding: "1.5rem",
-            borderLeft: `4px solid ${PILLARS.find(p => p.id === activePillar)?.color}`
+            animation: "fadeIn 0.5s cubic-bezier(0.23, 1, 0.32, 1)",
+            padding: "2rem",
+            borderLeft: `2px solid ${PILLARS.find(p => p.id === activePillar)?.color}`,
+            background: "rgba(0,0,0,0.4)"
           }}
         >
-          <h3 style={{ fontSize: "1.1rem", marginBottom: "0.5rem" }}>
-            {PILLARS.find(p => p.id === activePillar)?.name} Alignment
+          <div style={{ fontSize: "0.7rem", fontWeight: 800, color: PILLARS.find(p => p.id === activePillar)?.color, textTransform: "uppercase", letterSpacing: "0.15em", marginBottom: "0.5rem" }}>
+            Deep Disclosure Required
+          </div>
+          <h3 style={{ fontSize: "1.5rem", marginBottom: "1rem", color: "#fff" }}>
+            {PILLARS.find(p => p.id === activePillar)?.name} Analysis
           </h3>
-          <p style={{ fontSize: "0.95rem", color: "var(--text-muted)", lineHeight: "1.6" }}>
+          <p style={{ fontSize: "1.05rem", color: "var(--text-muted)", lineHeight: "1.7" }}>
             {PILLARS.find(p => p.id === activePillar)?.description}
           </p>
-          <div style={{ marginTop: "1rem", height: "6px", background: "rgba(255,255,255,0.05)", borderRadius: "3px", overflow: "hidden" }}>
-            <div style={{ 
-              height: "100%", 
-              width: `${scores[activePillar]}%`, 
-              background: PILLARS.find(p => p.id === activePillar)?.color,
-              boxShadow: `0 0 10px ${PILLARS.find(p => p.id === activePillar)?.color}`
-            }} />
+          <div style={{ marginTop: "2rem" }}>
+             <Link href="/pricing" className="btn btn-secondary" style={{ width: "auto", padding: "0.75rem 2rem" }}>Unlock Strategy</Link>
           </div>
         </div>
       )}

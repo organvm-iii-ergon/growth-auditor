@@ -6,13 +6,14 @@ import ApiKeyInline from "@/components/ApiKeyInline";
 import AuditPresets from "@/components/AuditPresets";
 import { getStoredApiKey } from "@/services/aiProvider";
 import { useSession } from "next-auth/react";
+import CosmicIcon, { IconType } from "@/components/CosmicIcons";
 import type { TeamRecord } from "@/lib/db";
 
-const PILLARS = [
-  { name: "Mercury", glyph: "☿", desc: "Communication", color: "#7000ff" },
-  { name: "Venus", glyph: "♀", desc: "Aesthetic", color: "#00d4ff" },
-  { name: "Mars", glyph: "♂", desc: "Drive", color: "#ff0070" },
-  { name: "Saturn", glyph: "♄", desc: "Structure", color: "#ffcc00" },
+const PILLARS: { name: string; icon: IconType; desc: string; color: string }[] = [
+  { name: "Mercury", icon: "mercury", desc: "Communication", color: "#7000ff" },
+  { name: "Venus", icon: "venus", desc: "Aesthetic", color: "#00d4ff" },
+  { name: "Mars", icon: "mars", desc: "Drive", color: "#ff0070" },
+  { name: "Saturn", icon: "saturn", desc: "Structure", color: "#ffcc00" },
 ];
 
 function getMoonPhase() {
@@ -68,72 +69,95 @@ export default function HomePage() {
     <main className="main">
       <div className="hero">
         <div className="astro-badge">✦ {planetaryWindow} Window Active</div>
-        <h1 style={{ fontSize: "clamp(2.5rem, 12vw, 6rem)", marginBottom: "2rem" }}>
-          Digital <span style={{ background: "var(--ocean-gradient)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Alignment</span>
+        <h1 style={{ fontSize: "clamp(2.5rem, 12vw, 6rem)", marginBottom: "3rem", letterSpacing: "-0.06em" }}>
+          Strategic <span style={{ background: "var(--ocean-gradient)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Alignment</span>
         </h1>
         
-        {/* SIGNAL-BASED LANDING: 4 Pillars as prime visual directive */}
         <div style={{ 
           display: "grid", 
           gridTemplateColumns: "repeat(2, 1fr)", 
-          gap: "1rem", 
+          gap: "1.5rem", 
           maxWidth: "600px", 
-          margin: "0 auto 3rem" 
+          margin: "0 auto 4rem" 
         }}>
           {PILLARS.map(p => (
             <div key={p.name} className="card" style={{ 
-              padding: "2rem 1rem", 
+              padding: "3rem 1rem", 
               textAlign: "center", 
-              borderWidth: "2px",
-              borderColor: "rgba(255,255,255,0.05)"
+              borderWidth: "1px",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: "1rem"
             }}>
-              <div style={{ fontSize: "3rem", color: p.color, marginBottom: "0.5rem", textShadow: `0 0 20px ${p.color}44` }}>{p.glyph}</div>
-              <div style={{ fontWeight: 800, fontSize: "0.8rem", textTransform: "uppercase", letterSpacing: "0.1em" }}>{p.name}</div>
-              <div style={{ fontSize: "0.7rem", color: "var(--text-muted)" }}>{p.desc}</div>
+              <div style={{ 
+                width: "80px", 
+                height: "80px", 
+                position: "relative",
+                display: "flex",
+                alignItems: "center", 
+                justifyContent: "center",
+                background: "rgba(255,255,255,0.1)",
+                borderRadius: "20px"
+              }}>
+                <div style={{ 
+                  width: "100%", 
+                  height: "100%", 
+                  background: "black", 
+                  position: "absolute",
+                  top: 0, left: 0,
+                  zIndex: 1,
+                  mixBlendMode: "destination-out" as any
+                }}>
+                   <CosmicIcon type={p.icon} size="70%" style={{ margin: "15%" }} />
+                </div>
+              </div>
+              <div style={{ fontWeight: 900, fontSize: "0.85rem", textTransform: "uppercase", letterSpacing: "0.25em", color: p.color }}>{p.name}</div>
+              <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", opacity: 0.8 }}>{p.desc}</div>
             </div>
           ))}
         </div>
 
-        <p style={{ marginBottom: "2.5rem", opacity: 0.8 }}>Decode digital bottlenecks through cosmic intelligence.</p>
+        <p style={{ marginBottom: "3rem", opacity: 0.6, fontSize: "1.1rem" }}>An oceanic intelligence depth, accessible through four primary signals.</p>
 
         {!showForm ? (
           <button 
             className="btn hero-cta" 
-            style={{ width: "auto", minWidth: "280px", padding: "1.25rem 3rem" }}
+            style={{ width: "auto", minWidth: "300px", padding: "1.5rem 4rem", fontSize: "1.1rem" }}
             onClick={() => setShowForm(true)}
           >
             Initiate Alignment ✦
           </button>
         ) : (
-          <div style={{ animation: "fadeIn 0.5s ease-out", width: "100%", maxWidth: "500px", margin: "0 auto" }}>
-            <div className="card" id="audit-form" style={{ textAlign: "left" }}>
+          <div style={{ animation: "fadeIn 0.6s cubic-bezier(0.23, 1, 0.32, 1)", width: "100%", maxWidth: "550px", margin: "0 auto" }}>
+            <div className="card" id="audit-form" style={{ textAlign: "left", padding: "3rem" }}>
               <form onSubmit={handleSubmit}>
                 <AuditPresets onSelect={(preset) => setFormData({ ...formData, ...preset })} />
                 <div className="form-group">
-                  <label>URL / Social Handle</label>
-                  <input className="input" type="url" required placeholder="https://..." value={formData.link} onChange={(e) => setFormData({ ...formData, link: e.target.value })} />
+                  <label htmlFor="link">URL / Social Handle</label>
+                  <input id="link" className="input" type="url" required placeholder="https://..." value={formData.link} onChange={(e) => setFormData({ ...formData, link: e.target.value })} />
                 </div>
                 <div className="form-group">
-                  <label>Business Niche</label>
-                  <input className="input" type="text" required placeholder="e.g. Creator, SaaS" value={formData.businessType} onChange={(e) => setFormData({ ...formData, businessType: e.target.value })} />
+                  <label htmlFor="business">Business Niche</label>
+                  <input id="business" className="input" type="text" required placeholder="e.g. Creator, SaaS" value={formData.businessType} onChange={(e) => setFormData({ ...formData, businessType: e.target.value })} />
                 </div>
                 <div className="form-group">
-                  <label>Target Manifestation</label>
-                  <textarea className="input" style={{ minHeight: "80px" }} required placeholder="What are you aiming for?" value={formData.goals} onChange={(e) => setFormData({ ...formData, goals: e.target.value })} />
+                  <label htmlFor="goals">Target Manifestation</label>
+                  <textarea id="goals" className="input" style={{ minHeight: "100px" }} required placeholder="What are you aiming for?" value={formData.goals} onChange={(e) => setFormData({ ...formData, goals: e.target.value })} />
                 </div>
                 {teams.length > 0 && (
                   <div className="form-group">
-                    <label>Assign to Team</label>
-                    <select className="input" value={formData.teamId} onChange={(e) => setFormData({ ...formData, teamId: e.target.value })}>
+                    <label htmlFor="team">Assign to Team</label>
+                    <select id="team" className="input" value={formData.teamId} onChange={(e) => setFormData({ ...formData, teamId: e.target.value })}>
                       <option value="">Personal</option>
                       {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
                     </select>
                   </div>
                 )}
                 <ApiKeyInline />
-                {error && <p style={{ color: "var(--accent)", marginBottom: "1rem", fontSize: "0.8rem" }}>{error}</p>}
-                <button type="submit" className="btn" disabled={loading}>{loading ? "Aligning..." : "Generate Audit"}</button>
-                <button type="button" className="btn btn-secondary" style={{ marginTop: "1rem" }} onClick={() => setShowForm(false)}>Cancel</button>
+                {error && <p style={{ color: "var(--accent)", marginBottom: "1.5rem", fontSize: "0.9rem" }}>{error}</p>}
+                <button type="submit" className="btn" disabled={loading} style={{ fontSize: "1.1rem" }}>{loading ? "Aligning..." : "Generate Strategic Audit"}</button>
+                <button type="button" className="btn btn-secondary" style={{ marginTop: "1rem", opacity: 0.6 }} onClick={() => setShowForm(false)}>Cancel</button>
               </form>
             </div>
           </div>

@@ -27,38 +27,37 @@ describe('HomePage', () => {
 
   it('renders correctly', () => {
     render(<HomePage />);
-    expect(screen.getByText('Decode Your Digital Bottlenecks in 60 Seconds')).toBeInTheDocument();
-    expect(screen.getByLabelText(/URL \/ Social Handle/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/Domain \/ Niche/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/Target Manifestation/i)).toBeInTheDocument();
+    expect(screen.getByText(/Strategic/i)).toBeInTheDocument();
+    // Use getAllByText for 'Alignment' as it appears in title and button
+    expect(screen.getAllByText(/Alignment/i).length).toBeGreaterThan(0);
+    expect(screen.getByText(/Mercury/i)).toBeInTheDocument();
   });
 
-  it('shows error if API keys are missing', () => {
+  it('shows form after clicking initiate', async () => {
     render(<HomePage />);
     
-    fireEvent.change(screen.getByLabelText(/URL \/ Social Handle/i), { target: { value: 'test.com' } });
-    fireEvent.change(screen.getByLabelText(/Domain \/ Niche/i), { target: { value: 'Studio' } });
-    fireEvent.change(screen.getByLabelText(/Target Manifestation/i), { target: { value: 'Grow' } });
-    
-    fireEvent.click(screen.getByRole('button', { name: /Generate Cosmic Audit/i }));
-    
-    expect(screen.getByText('Please configure your AI provider API key in Settings first.')).toBeInTheDocument();
-    expect(mockPush).not.toHaveBeenCalled();
+    const initiateButton = screen.getByText(/Initiate Alignment/i);
+    fireEvent.click(initiateButton);
+
+    expect(await screen.findByLabelText(/URL \/ Social Handle/i)).toBeInTheDocument();
   });
 
-  it('submits successfully and redirects if keys exist', () => {
-    localStorage.setItem('gemini_api_key', 'test-key');
+  it('submits successfully and redirects if keys exist', async () => {
+    localStorage.setItem('gemini_api_key', 'valid-key');
     render(<HomePage />);
     
-    fireEvent.change(screen.getByLabelText(/URL \/ Social Handle/i), { target: { value: 'test.com' } });
-    fireEvent.change(screen.getByLabelText(/Domain \/ Niche/i), { target: { value: 'Studio' } });
+    // Open form
+    fireEvent.click(screen.getByText(/Initiate Alignment/i));
+
+    fireEvent.change(screen.getByLabelText(/URL \/ Social Handle/i), { target: { value: 'https://test.com' } });
+    fireEvent.change(screen.getByLabelText(/Business Niche/i), { target: { value: 'Studio' } });
     fireEvent.change(screen.getByLabelText(/Target Manifestation/i), { target: { value: 'Grow' } });
     
-    fireEvent.click(screen.getByRole('button', { name: /Generate Cosmic Audit/i }));
+    fireEvent.click(screen.getByText(/Generate Strategic Audit/i));
     
     expect(mockPush).toHaveBeenCalledWith('/results');
     expect(JSON.parse(sessionStorage.getItem('current_audit_request')!)).toEqual({
-      link: 'test.com',
+      link: 'https://test.com',
       businessType: 'Studio',
       goals: 'Grow',
       teamId: ''

@@ -58,10 +58,17 @@ The \`markdownAudit\` MUST be structured with these sections:
 
 1. Overview: The Current Energy. A quick summary of the digital presence based on their actual website content and visuals.
 2. Current Strengths: Working with the Flow. What is working well?
-3. Growth Bottlenecks: Mercury Retrograde points. What exactly is limiting their growth or conversion? Be specific to their actual content and technical SEO metrics (if available).
-4. Astro-Growth Insights: Specialized cosmic/intuitive advice for the brand's evolution (e.g. Venusian aesthetics, Mars-like execution).
+3. Growth Bottlenecks: Mercury Retrograde points. What exactly is limiting their growth or conversion? Be specific.
+4. Astro-Growth Insights: Specialized cosmic/intuitive advice for the brand's evolution.
 5. Immediate Improvements: Strategic Alignment. 3-5 things they can fix today.
 6. Strategic Opportunities: Expansion Windows. High-level growth paths.
+
+CRITICAL INSTRUCTIONS:
+- You MUST write the entire audit in ${language}.
+- Use professional yet slightly "mystical" and authoritative language.
+- DO NOT reveal the exact technical implementation steps of our proprietary strategy frameworks.
+- Instead, "allude" to the depth of the solution and state that full disclosure of the fix is available through the [Paths to Manifestation] below.
+- Example: Instead of "Change your H1 to X", say "Your current H1 energy is misaligned with the Saturnian structure; the specific linguistic realignment is available in the Vault."
 
 CRITICAL LEAD GEN INSTRUCTION:
 At the end of the \`markdownAudit\` string, you MUST provide a "Call to Action" for each of the following three "Paths to Manifestation":
@@ -69,10 +76,6 @@ At the end of the \`markdownAudit\` string, you MUST provide a "Call to Action" 
 - Path 1 (The Builder): If the user wants the "Growth Bottlenecks" fixed for them immediately by an expert (Done For You).
 - Path 2 (The Vault): If the user wants the exact templates and pointers to fix these "Immediate Improvements" themselves (Done With You).
 - Path 3 (The Oracle): If the user needs a deep-dive consulting session to explore the "Strategic Opportunities" further (Consulting).
-
-Use professional yet slightly "mystical" and authoritative language. Use Markdown for formatting. Ensure the tone makes the user feel that scaling is inevitable if they align with one of these paths.
-
-You MUST write the entire audit in ${language}.
 `;
 }
 
@@ -118,22 +121,17 @@ ${seoContext}
 Write the audit in well-formatted MARKDOWN. Structure it with these sections:
 
 1. ## Overview: The Current Energy
-A quick summary of the digital presence based on their actual website content and visuals.
-
 2. ## Current Strengths: Working with the Flow
-What is working well?
-
 3. ## Growth Bottlenecks: Mercury Retrograde Points
-What exactly is limiting their growth or conversion? Be specific to their actual content and technical SEO metrics (if available).
-
 4. ## Astro-Growth Insights
-Specialized cosmic/intuitive advice for the brand's evolution (e.g. Venusian aesthetics, Mars-like execution).
-
 5. ## Immediate Improvements: Strategic Alignment
-3-5 things they can fix today.
-
 6. ## Strategic Opportunities: Expansion Windows
-High-level growth paths.
+
+CRITICAL INSTRUCTIONS:
+- You MUST write the entire audit in ${language}.
+- Use professional yet slightly "mystical" and authoritative language.
+- DO NOT reveal the exact technical implementation steps of our proprietary strategy frameworks.
+- Instead, "allude" to the depth of the solution and state that full disclosure of the fix is available through the [Paths to Manifestation] below.
 
 CRITICAL LEAD GEN INSTRUCTION:
 At the end, provide a "Call to Action" for each of the following three "Paths to Manifestation":
@@ -141,10 +139,6 @@ At the end, provide a "Call to Action" for each of the following three "Paths to
 - **Path 1 (The Builder):** If the user wants the "Growth Bottlenecks" fixed for them immediately by an expert (Done For You).
 - **Path 2 (The Vault):** If the user wants the exact templates and pointers to fix these "Immediate Improvements" themselves (Done With You).
 - **Path 3 (The Oracle):** If the user needs a deep-dive consulting session to explore the "Strategic Opportunities" further (Consulting).
-
-Use professional yet slightly "mystical" and authoritative language. Ensure the tone makes the user feel that scaling is inevitable if they align with one of these paths.
-
-You MUST write the entire audit in ${language}.
 
 IMPORTANT: At the very end of your response, you MUST include a scores section in exactly this format:
 
@@ -154,6 +148,6 @@ IMPORTANT: At the very end of your response, you MUST include a scores section i
 - Drive: [0-100]
 - Structure: [0-100]
 
-Replace [0-100] with actual integer scores (Mercury=Communication, Venus=Aesthetic, Mars=Drive, Saturn=Structure). These scores reflect your assessment of the site's current performance in each dimension.
+Replace [0-100] with actual integer scores (Mercury=Communication, Venus=Aesthetic, Mars=Drive, Saturn=Structure).
 `;
 }

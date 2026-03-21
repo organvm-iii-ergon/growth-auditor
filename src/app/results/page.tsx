@@ -310,9 +310,9 @@ export default function ResultsPage() {
           <button 
             onClick={() => setShowSubmerged(!showSubmerged)}
             className="btn btn-secondary"
-            style={{ width: "100%", marginBottom: "1.5rem" }}
+            style={{ width: "100%", marginBottom: "1.5rem", background: "rgba(255,255,255,0.03)" }}
           >
-            {showSubmerged ? "↑ Submerge Detailed Report" : "↓ Explore Deep Intelligence"}
+            {showSubmerged ? "↑ Submerge Detailed Report" : "↓ Explore Submerged Technical Data"}
           </button>
 
           {showSubmerged && (
@@ -320,17 +320,17 @@ export default function ResultsPage() {
               ref={reportRef} 
               className="card" 
               style={{ 
-                animation: "fadeIn 0.5s ease-out", 
-                padding: "2rem 1.5rem",
-                background: "rgba(0,0,0,0.2)"
+                animation: "fadeIn 0.5s cubic-bezier(0.23, 1, 0.32, 1)", 
+                padding: "3rem 2rem",
+                background: "rgba(0,0,0,0.4)"
               }}
             >
               <div className="audit-content">
                 <ReactMarkdown>{audit}</ReactMarkdown>
               </div>
-              <div style={{ marginTop: "2rem", textAlign: "center" }}>
-                <button onClick={downloadPDF} disabled={isDownloading} className="btn" style={{ maxWidth: "250px" }}>
-                  {isDownloading ? "Generating PDF..." : "Export as Strategic PDF"}
+              <div style={{ marginTop: "3rem", textAlign: "center" }}>
+                <button onClick={downloadPDF} disabled={isDownloading} className="btn" style={{ maxWidth: "300px" }}>
+                  {isDownloading ? "Generating PDF..." : "Export Strategic Report"}
                 </button>
               </div>
             </div>
@@ -340,13 +340,13 @@ export default function ResultsPage() {
         {/* FEEDBACK LOOP */}
         <EmailGate auditId={auditId}>
           <div style={{ textAlign: "center", marginBottom: "4rem" }}>
-            <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "1rem" }}>
+            <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "1.5rem" }}>
               {feedbackSent ? "Thank you for aligning our data! ✦" : "Was this cosmic alignment helpful?"}
             </p>
             {!feedbackSent && (
               <div style={{ display: "flex", justifyContent: "center", gap: "1rem" }}>
-                <button onClick={() => handleFeedback(1)} className="btn-secondary" style={{ padding: "0.5rem 1.25rem", fontSize: "1.2rem", background: "rgba(255,255,255,0.05)", minHeight: "44px" }}>👍</button>
-                <button onClick={() => handleFeedback(0)} className="btn-secondary" style={{ padding: "0.5rem 1.25rem", fontSize: "1.2rem", background: "rgba(255,255,255,0.05)", minHeight: "44px" }}>👎</button>
+                <button onClick={() => handleFeedback(1)} className="btn-secondary" style={{ padding: "0.5rem 1.5rem", fontSize: "1.2rem", background: "rgba(255,255,255,0.05)", minHeight: "44px" }}>👍</button>
+                <button onClick={() => handleFeedback(0)} className="btn-secondary" style={{ padding: "0.5rem 1.5rem", fontSize: "1.2rem", background: "rgba(255,255,255,0.05)", minHeight: "44px" }}>👎</button>
               </div>
             )}
           </div>
@@ -357,31 +357,31 @@ export default function ResultsPage() {
         {/* ACTION NODES: Signal-Based CTA */}
         <div className="upsell-section" style={{ textAlign: "center", marginBottom: "6rem" }}>
           <h2 style={{ marginBottom: "2.5rem", fontSize: "1.75rem", letterSpacing: "-0.04em" }}>Paths to Manifestation</h2>
-          <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
             <SignalPathNode 
               pathNumber={1} 
               title="The Builder" 
-              glyph="⚒"
+              icon="hammer"
               color="#7000ff"
-              description="Direct expert execution. We fix your technical and creative bottlenecks for you." 
-              buttonText="Secure Execution" 
+              description="Direct expert execution. We implement the submerged strategy for you to ensure perfect technical and creative alignment." 
+              buttonText="Inquire for Execution" 
               isPrimary={true} 
             />
             <SignalPathNode 
               pathNumber={2} 
               title="The Vault" 
-              glyph="🔑"
+              icon="key"
               color="#00d4ff"
-              description="Access the Growth Vault. Proprietary templates and actionable cosmic blueprints." 
-              buttonText="Enter Vault" 
+              description="Access proprietary templates and actionable blueprints. This resource is gated behind our Pro membership." 
+              buttonText="Unlock the Vault" 
             />
             <SignalPathNode 
               pathNumber={3} 
               title="The Oracle" 
-              glyph="👁"
+              icon="eye"
               color="#ffcc00"
-              description="1-on-1 strategic diagnostic. Align your unique vision with the current growth window." 
-              buttonText="Book Session" 
+              description="1-on-1 strategic diagnostic. Dive deep into the oceanic data with an expert to map your brand's unique growth window." 
+              buttonText="Request Consultation" 
             />
           </div>
         </div>
@@ -408,6 +408,12 @@ export default function ResultsPage() {
           line-height: 1.6;
           color: var(--foreground);
           font-size: 1rem;
+        }
+        @media (min-width: 769px) {
+          .audit-content p {
+            margin-bottom: 1.5rem;
+            font-size: 1.1rem;
+          }
         }
         .audit-content ul, .audit-content ol {
           margin-bottom: 1.5rem;

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { auth, signIn, signOut } from "@/auth";
 import { PostHogProvider } from "@/providers/PostHogProvider";
 import { AuthProvider } from "@/providers/AuthProvider";
+import SpaceTimeBackground from "@/components/SpaceTimeBackground";
 import { getAllConfig } from "@/lib/config";
 
 export const metadata: Metadata = {
@@ -49,9 +50,10 @@ export default async function RootLayout({
       )}
       {customCss && <style dangerouslySetInnerHTML={{ __html: customCss }} />}
       <body>
+        <SpaceTimeBackground />
         <AuthProvider>
           <PostHogProvider>
-            <div className="container">
+            <div className="container" style={{ position: "relative", zIndex: 1 }}>
               <nav className="nav">
                 <Link href="/" className="logo">{appName || "Growth Auditor.ai"}</Link>
                 <div className="nav-links">
