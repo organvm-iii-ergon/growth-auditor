@@ -6,7 +6,8 @@ import ApiKeyInline from "@/components/ApiKeyInline";
 import AuditPresets from "@/components/AuditPresets";
 import { getStoredApiKey } from "@/services/aiProvider";
 import { useSession } from "next-auth/react";
-import CosmicIcon, { IconType } from "@/components/CosmicIcons";
+import TransparentIcon from "@/components/TransparentIcon";
+import { IconType } from "@/components/CosmicIcons";
 import type { TeamRecord } from "@/lib/db";
 
 const PILLARS: { name: string; icon: IconType; desc: string; color: string }[] = [
@@ -73,6 +74,7 @@ export default function HomePage() {
           Strategic <span style={{ background: "var(--ocean-gradient)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Alignment</span>
         </h1>
         
+        {/* SIGNAL-BASED LANDING: 4 Pillars with transparent cut-outs */}
         <div style={{ 
           display: "grid", 
           gridTemplateColumns: "repeat(2, 1fr)", 
@@ -88,32 +90,24 @@ export default function HomePage() {
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
-              gap: "1rem"
+              gap: "1.5rem"
             }}>
+              {/* TRUE TRANSPARENT CUT-OUT */}
               <div style={{ 
                 width: "80px", 
                 height: "80px", 
-                position: "relative",
                 display: "flex",
                 alignItems: "center", 
                 justifyContent: "center",
-                background: "rgba(255,255,255,0.1)",
-                borderRadius: "20px"
+                color: "rgba(255,255,255,0.15)" // The color of the "stencil"
               }}>
-                <div style={{ 
-                  width: "100%", 
-                  height: "100%", 
-                  background: "black", 
-                  position: "absolute",
-                  top: 0, left: 0,
-                  zIndex: 1,
-                  mixBlendMode: "destination-out" as any
-                }}>
-                   <CosmicIcon type={p.icon} size="70%" style={{ margin: "15%" }} />
-                </div>
+                <TransparentIcon type={p.icon} size="100%" />
               </div>
-              <div style={{ fontWeight: 900, fontSize: "0.85rem", textTransform: "uppercase", letterSpacing: "0.25em", color: p.color }}>{p.name}</div>
-              <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", opacity: 0.8 }}>{p.desc}</div>
+
+              <div>
+                <div style={{ fontWeight: 900, fontSize: "0.85rem", textTransform: "uppercase", letterSpacing: "0.25em", color: p.color, marginBottom: "0.25rem" }}>{p.name}</div>
+                <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", opacity: 0.8 }}>{p.desc}</div>
+              </div>
             </div>
           ))}
         </div>

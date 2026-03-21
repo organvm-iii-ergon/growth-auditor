@@ -11,49 +11,60 @@ export default function SpaceTimeBackground() {
 
     const sketch = (p: p5) => {
       let stars: Star[] = [];
-      let speed: number;
+      let speed: number = 20;
 
       class Star {
         x: number;
         y: number;
         z: number;
         pz: number;
+        color: p5.Color;
 
         constructor() {
-          this.x = p.random(-p.width, p.width);
-          this.y = p.random(-p.height, p.height);
-          this.z = p.random(p.width);
+          this.x = p.random(-p.width * 2, p.width * 2);
+          this.y = p.random(-p.height * 2, p.height * 2);
+          this.z = p.random(p.width * 2);
           this.pz = this.z;
+          
+          // Mimic the "Stargate" or "Interstellar" color shifts
+          const r = p.random(100, 255);
+          const g = p.random(150, 255);
+          const b = 255;
+          this.color = p.color(r, g, b);
         }
 
         update() {
           this.z = this.z - speed;
           if (this.z < 1) {
-            this.z = p.width;
-            this.x = p.random(-p.width, p.width);
-            this.y = p.random(-p.height, p.height);
+            this.z = p.width * 2;
+            this.x = p.random(-p.width * 2, p.width * 2);
+            this.y = p.random(-p.height * 2, p.height * 2);
             this.pz = this.z;
           }
         }
 
         show() {
-          p.fill(255);
-          p.noStroke();
+          let sx = p.map(this.x / this.z, 0, 1, 0, p.width / 2);
+          let sy = p.map(this.y / this.z, 0, 1, 0, p.height / 2);
 
-          let sx = p.map(this.x / this.z, 0, 1, 0, p.width);
-          let sy = p.map(this.y / this.z, 0, 1, 0, p.height);
+          let r = p.map(this.z, 0, p.width * 2, 8, 0);
 
-          let r = p.map(this.z, 0, p.width, 12, 0);
-          // p.ellipse(sx, sy, r, r);
-
-          let px = p.map(this.x / this.pz, 0, 1, 0, p.width);
-          let py = p.map(this.y / this.pz, 0, 1, 0, p.height);
+          let px = p.map(this.x / this.pz, 0, 1, 0, p.width / 2);
+          let py = p.map(this.y / this.pz, 0, 1, 0, p.height / 2);
 
           this.pz = this.z;
 
-          p.stroke(100, 150, 255, p.map(this.z, 0, p.width, 255, 0));
+          // Streak effect
+          p.stroke(this.color);
           p.strokeWeight(r);
           p.line(px, py, sx, sy);
+          
+          // Occasional "pulse" stars
+          if (p.random(1) > 0.99) {
+            p.noStroke();
+            p.fill(255, 255, 255, 200);
+            p.circle(sx, sy, r * 2);
+          }
         }
       }
 
@@ -61,15 +72,19 @@ export default function SpaceTimeBackground() {
         const canvas = p.createCanvas(window.innerWidth, window.innerHeight);
         canvas.position(0, 0);
         canvas.style("z-index", "-2");
-        for (let i = 0; i < 800; i++) {
+        for (let i = 0; i < 1200; i++) {
           stars[i] = new Star();
         }
       };
 
       p.draw = () => {
-        speed = 15;
-        p.background(5, 10, 25, 50); // Slight trail effect
+        // Darker background with more trail for "motion blur" feel
+        p.background(3, 7, 20, 40); 
         p.translate(p.width / 2, p.height / 2);
+        
+        // Speed fluctuates slightly like a warp engine
+        speed = 25 + p.sin(p.frameCount * 0.01) * 10;
+        
         for (let i = 0; i < stars.length; i++) {
           stars[i].update();
           stars[i].show();
@@ -99,7 +114,7 @@ export default function SpaceTimeBackground() {
         height: "100%", 
         zIndex: -2, 
         pointerEvents: "none",
-        background: "#050a19"
+        background: "#02050f"
       }} 
     />
   );
