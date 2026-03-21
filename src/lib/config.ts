@@ -37,51 +37,67 @@ const defaultConfig: Record<string, string> = {
   webhookSecret: "",
 };
 
-// Initialize SQLite — gracefully degrade on read-only filesystems (Vercel serverless)
+// Lazy singleton — DB is initialized on first access, not at import time.
+// This prevents better-sqlite3 native module from crashing Vercel's SSR runtime.
 let db: DatabaseType | null = null;
+let dbInitAttempted = false;
 
-try {
-  const path = require("path");
-  const fs = require("fs");
-  const Database = require("better-sqlite3");
-  const dataDir = path.join(process.cwd(), "data");
-  if (!fs.existsSync(dataDir)) {
-    fs.mkdirSync(dataDir, { recursive: true });
-  }
-  const dbPath = path.join(dataDir, "config.db");
-  const instance = new Database(dbPath);
+function getDb(): DatabaseType | null {
+  if (dbInitAttempted) return db;
+  dbInitAttempted = true;
 
-  instance.exec(`
-    CREATE TABLE IF NOT EXISTS config (
-      key TEXT PRIMARY KEY,
-      value TEXT NOT NULL,
-      updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
-  `);
+  try {
+    // Dynamic import of Node built-ins and native module
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const Database = require("better-sqlite3");
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const path = require("path");
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const fs = require("fs");
 
-  for (const [key, value] of Object.entries(defaultConfig)) {
-    const existing = instance.prepare("SELECT value FROM config WHERE key = ?").get(key);
-    if (!existing) {
-      instance.prepare("INSERT INTO config (key, value) VALUES (?, ?)").run(key, value);
+    const dataDir = path.join(process.cwd(), "data");
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
     }
+    const dbPath = path.join(dataDir, "config.db");
+    const instance = new Database(dbPath);
+
+    instance.exec(`
+      CREATE TABLE IF NOT EXISTS config (
+        key TEXT PRIMARY KEY,
+        value TEXT NOT NULL,
+        updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    for (const [key, value] of Object.entries(defaultConfig)) {
+      const existing = instance.prepare("SELECT value FROM config WHERE key = ?").get(key);
+      if (!existing) {
+        instance.prepare("INSERT INTO config (key, value) VALUES (?, ?)").run(key, value);
+      }
+    }
+    db = instance;
+  } catch {
+    // Native module unavailable or read-only filesystem — use defaults
+    db = null;
   }
-  db = instance;
-} catch {
-  // Read-only filesystem (Vercel serverless) — fall back to in-memory defaults
-  db = null;
+
+  return db;
 }
 
 export function getConfig(key: string): string | null {
-  if (!db) return defaultConfig[key] ?? null;
-  const row = db.prepare("SELECT value FROM config WHERE key = ?").get(key) as
+  const instance = getDb();
+  if (!instance) return defaultConfig[key] ?? null;
+  const row = instance.prepare("SELECT value FROM config WHERE key = ?").get(key) as
     | { value: string }
     | undefined;
   return row?.value ?? null;
 }
 
 export function getAllConfig(): Record<string, string> {
-  if (!db) return { ...defaultConfig };
-  const rows = db.prepare("SELECT key, value FROM config").all() as {
+  const instance = getDb();
+  if (!instance) return { ...defaultConfig };
+  const rows = instance.prepare("SELECT key, value FROM config").all() as {
     key: string;
     value: string;
   }[];
@@ -93,13 +109,15 @@ export function getAllConfig(): Record<string, string> {
 }
 
 export function setConfig(key: string, value: string): void {
-  if (!db) return;
-  db.prepare(
+  const instance = getDb();
+  if (!instance) return;
+  instance.prepare(
     "INSERT OR REPLACE INTO config (key, value, updatedAt) VALUES (?, ?, CURRENT_TIMESTAMP)"
   ).run(key, value);
 }
 
 export function deleteConfig(key: string): void {
-  if (!db) return;
-  db.prepare("DELETE FROM config WHERE key = ?").run(key);
+  const instance = getDb();
+  if (!instance) return;
+  instance.prepare("DELETE FROM config WHERE key = ?").run(key);
 }
