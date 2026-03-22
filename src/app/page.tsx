@@ -69,96 +69,89 @@ export default function HomePage() {
   };
 
   return (
-    <main className="main" style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "2rem 1rem" }}>
-      
-      {/* THE SINGLE PORTAL CARD: Glassmorphism Core */}
-      <div className="card" style={{
-        maxWidth: "800px",
-        padding: "4rem 2rem",
-        textAlign: "center",
-        borderRadius: "32px",
-        boxShadow: "0 40px 100px rgba(0,0,0,0.6)",
-        animation: "fadeIn 1.2s cubic-bezier(0.23, 1, 0.32, 1)"
-      }}>
-        
-        <div className="astro-badge" style={{ marginBottom: "2rem", opacity: 0.5, fontSize: "0.65rem" }} title="Current lunar phase">✦ {planetaryWindow}</div>
-        
-        <h1 style={{ fontSize: "clamp(2.5rem, 10vw, 5.5rem)", marginBottom: "1rem", letterSpacing: "-0.08em", fontWeight: 900, lineHeight: 0.95 }}>
+    <main className="main" style={{ padding: "0 1rem 3rem" }}>
+      <div style={{ maxWidth: "720px", margin: "0 auto", textAlign: "center" }}>
+
+        <h1 style={{ fontSize: "clamp(2.2rem, 8vw, 4.5rem)", marginBottom: "0.5rem", letterSpacing: "-0.06em", fontWeight: 900, lineHeight: 1 }}>
           Digital <span style={{ background: "var(--ocean-gradient)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Alignment</span>
         </h1>
-        
-        <p style={{ marginBottom: "4rem", opacity: 0.5, fontSize: "1.1rem", maxWidth: "500px", margin: "0 auto 4rem" }}>
-          Proprietary strategic intelligence submerged beneath four cosmic signals.
+
+        <p style={{ opacity: 0.5, fontSize: "0.95rem", marginBottom: "2rem" }}>
+          AI-powered growth audits across four strategic pillars.
         </p>
 
-        {/* PILLAR GRID INSIDE THE CARD */}
-        <div style={{ 
-          display: "grid", 
-          gridTemplateColumns: "repeat(2, 1fr)", 
-          gap: "1.5rem", 
-          marginBottom: "4rem" 
+        {/* PILLARS — single row on desktop, 2x2 on mobile */}
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(4, 1fr)",
+          gap: "0.75rem",
+          marginBottom: "2rem"
         }}>
           {PILLARS.map(p => (
             <div key={p.name} style={{
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
-              gap: "1rem"
+              gap: "0.4rem",
+              padding: "1rem 0.5rem",
+              background: "rgba(255,255,255,0.03)",
+              borderRadius: "12px",
+              border: "1px solid rgba(255,255,255,0.06)"
             }}>
-              <div style={{
-                width: "80px",
-                height: "80px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}>
+              <div style={{ width: "36px", height: "36px" }}>
                 <TransparentIcon type={p.icon} size="100%" />
               </div>
-              <div style={{ fontWeight: 900, fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "0.3em", color: p.color }}>{p.name}</div>
+              <div style={{ fontWeight: 800, fontSize: "0.6rem", textTransform: "uppercase", letterSpacing: "0.2em", color: p.color }}>{p.name}</div>
+              <div style={{ fontSize: "0.65rem", color: "var(--text-muted)", opacity: 0.7 }}>{p.desc}</div>
             </div>
           ))}
         </div>
 
-        {!showForm ? (
-          <button 
-            className="btn" 
-            style={{ width: "auto", minWidth: "300px", padding: "1.5rem 4rem", fontSize: "1.2rem", borderRadius: "100px", background: "var(--ocean-gradient)" }}
-            onClick={() => setShowForm(true)}
-          >
-            Initiate Alignment ✦
-          </button>
-        ) : (
-          <div style={{ animation: "fadeIn 0.6s ease-out", textAlign: "left", marginTop: "2rem", borderTop: "1px solid rgba(255,255,255,0.1)", paddingTop: "3rem" }}>
-            <form onSubmit={handleSubmit}>
-              <AuditPresets onSelect={(preset) => setFormData({ ...formData, ...preset })} />
-              <div className="form-group">
-                <label htmlFor="link">URL / Social Handle</label>
-                <input id="link" className="input" type="url" required placeholder="https://..." value={formData.link} onChange={(e) => setFormData({ ...formData, link: e.target.value })} />
-              </div>
-              <div className="form-group">
-                <label htmlFor="business">Business Niche</label>
-                <input id="business" className="input" type="text" required placeholder="e.g. Creator, SaaS" value={formData.businessType} onChange={(e) => setFormData({ ...formData, businessType: e.target.value })} />
-              </div>
-              <div className="form-group">
-                <label htmlFor="goals">Target Manifestation</label>
-                <textarea id="goals" className="input" style={{ minHeight: "100px" }} required placeholder="What are you aiming for?" value={formData.goals} onChange={(e) => setFormData({ ...formData, goals: e.target.value })} />
-              </div>
-              {teams.length > 0 && (
+        {/* FORM AREA */}
+        <div className="card" style={{ borderRadius: "20px", textAlign: "left" }}>
+          {!showForm ? (
+            <div style={{ textAlign: "center", padding: "2rem 1rem" }}>
+              <button
+                className="btn"
+                style={{ width: "auto", padding: "1rem 3rem", fontSize: "1.05rem", borderRadius: "100px", background: "var(--ocean-gradient)" }}
+                onClick={() => setShowForm(true)}
+              >
+                Initiate Alignment
+              </button>
+            </div>
+          ) : (
+            <div style={{ animation: "fadeIn 0.4s ease-out" }}>
+              <form onSubmit={handleSubmit}>
+                <AuditPresets onSelect={(preset) => setFormData({ ...formData, ...preset })} />
                 <div className="form-group">
-                  <label htmlFor="team">Assign to Team</label>
-                  <select id="team" className="input" value={formData.teamId} onChange={(e) => setFormData({ ...formData, teamId: e.target.value })}>
-                    <option value="">Personal</option>
-                    {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-                  </select>
+                  <label htmlFor="link">URL / Social Handle</label>
+                  <input id="link" className="input" type="url" required placeholder="https://..." value={formData.link} onChange={(e) => setFormData({ ...formData, link: e.target.value })} />
                 </div>
-              )}
-              <ApiKeyInline />
-              {error && <p style={{ color: "var(--accent)", marginBottom: "1.5rem", fontSize: "0.9rem" }}>{error}</p>}
-              <button type="submit" className="btn" disabled={loading} style={{ fontSize: "1.1rem", padding: "1.25rem" }}>{loading ? "Aligning..." : "Generate Strategic Audit"}</button>
-              <button type="button" className="btn btn-secondary" style={{ marginTop: "1rem", opacity: 0.6 }} onClick={() => setShowForm(false)}>Cancel</button>
-            </form>
-          </div>
-        )}
+                <div className="form-group">
+                  <label htmlFor="business">Business Niche</label>
+                  <input id="business" className="input" type="text" required placeholder="e.g. Creator, SaaS" value={formData.businessType} onChange={(e) => setFormData({ ...formData, businessType: e.target.value })} />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="goals">Target Manifestation</label>
+                  <textarea id="goals" className="input" style={{ minHeight: "80px" }} required placeholder="What are you aiming for?" value={formData.goals} onChange={(e) => setFormData({ ...formData, goals: e.target.value })} />
+                </div>
+                {teams.length > 0 && (
+                  <div className="form-group">
+                    <label htmlFor="team">Assign to Team</label>
+                    <select id="team" className="input" value={formData.teamId} onChange={(e) => setFormData({ ...formData, teamId: e.target.value })}>
+                      <option value="">Personal</option>
+                      {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                    </select>
+                  </div>
+                )}
+                <ApiKeyInline />
+                {error && <p style={{ color: "var(--accent)", marginBottom: "1rem", fontSize: "0.85rem" }}>{error}</p>}
+                <button type="submit" className="btn" disabled={loading} style={{ fontSize: "1rem", padding: "1rem" }}>{loading ? "Aligning..." : "Generate Strategic Audit"}</button>
+                <button type="button" className="btn btn-secondary" style={{ marginTop: "0.75rem", opacity: 0.6 }} onClick={() => setShowForm(false)}>Cancel</button>
+              </form>
+            </div>
+          )}
+        </div>
       </div>
     </main>
   );
