@@ -48,7 +48,7 @@ export async function POST(request: Request) {
           price_data: {
             currency: "usd",
             product_data: {
-              name: `Growth Auditor - ${title}`,
+              name: `Avditor Mvndi - ${title}`,
               description: `Cosmic Growth Path ${pathNumber}`,
             },
             unit_amount: unitAmount,

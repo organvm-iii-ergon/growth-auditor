@@ -57,7 +57,7 @@ async function generateMonthlyAudit(
     const scores = result.scores || {};
     try {
       await resend.emails.send({
-        from: "Growth Auditor <hello@growthauditor.ai>",
+        from: "Avditor Mvndi <hello@growthauditor.ai>",
         to: recipients,
         subject: "Your Cosmic Alignment Has Evolved ✦",
         html: `
@@ -74,7 +74,7 @@ async function generateMonthlyAudit(
           </div>
           <p><a href="${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}/history">View full evolution in your archive.</a></p>
           <p>Stay cosmic,</p>
-          <p>The Growth Auditor Team</p>
+          <p>The Avditor Mvndi Team</p>
         `,
       });
     } catch (e) {

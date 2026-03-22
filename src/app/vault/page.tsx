@@ -53,7 +53,7 @@ export default function VaultPage() {
           </div>
           <h2>The Vault is Submerged</h2>
           <p style={{ margin: "1rem 0 2rem", color: "var(--text-muted)", fontSize: "1.1rem" }}>
-            Unlock proprietary strategy guides, templates, and the full 90% depth of the Growth Auditor by ascending to Pro.
+            Unlock proprietary strategy guides, templates, and the full 90% depth of the Avditor Mvndi by ascending to Pro.
           </p>
           <Link href="/pricing" className="btn" style={{ width: "auto", padding: "1rem 3rem" }}>Ascend to Pro</Link>
         </div>

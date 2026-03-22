@@ -26,7 +26,7 @@ const defaults: Record<string, string> = {
   enableSubscriptions: "false",
   enableMonthlyAudits: "true",
   emailFrom: "hello@growthauditor.ai",
-  appName: "Growth Auditor",
+  appName: "Avditor Mvndi",
   appTagline: "Cosmic Strategy & Digital Alignment",
   primaryColor: "#7000ff",
   accentColor: "#00d4ff",

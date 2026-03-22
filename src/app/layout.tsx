@@ -9,26 +9,26 @@ import ClientBackground from "@/components/ClientBackground";
 
 export const metadata: Metadata = {
   title: {
-    default: "Growth Auditor AI | Cosmic Strategy & Digital Alignment",
-    template: "%s | Growth Auditor AI",
+    default: "Avditor Mvndi | Cosmic Strategy & Digital Alignment",
+    template: "%s | Avditor Mvndi",
   },
   description: "Decode your digital bottlenecks and align your business strategy with data-driven, cosmic growth audits powered by AI.",
-  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || "https://growth-auditor.vercel.app"),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || "https://specvla-ergon--avditor-mvndi.vercel.app"),
   openGraph: {
-    title: "Growth Auditor AI",
+    title: "Avditor Mvndi",
     description: "AI-powered cosmic growth audits for your digital presence.",
-    siteName: "Growth Auditor AI",
+    siteName: "Avditor Mvndi",
     type: "website",
     images: ["/api/og"],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Growth Auditor AI",
+    title: "Avditor Mvndi",
     description: "AI-powered cosmic growth audits for your digital presence.",
   },
 };
 
-const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME || "Growth Auditor";
+const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME || "Avditor Mvndi";
 
 export default async function RootLayout({
   children,

@@ -26,7 +26,7 @@ export async function GET() {
     return new Response(JSON.stringify(exportData, null, 2), {
       headers: {
         "Content-Type": "application/json",
-        "Content-Disposition": `attachment; filename="growth-auditor-data-${session.user.email}.json"`,
+        "Content-Disposition": `attachment; filename="avditor-mvndi-data-${session.user.email}.json"`,
       },
     });
   } catch (error: unknown) {

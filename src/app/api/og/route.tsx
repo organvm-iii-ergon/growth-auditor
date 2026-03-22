@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
           }}
         >
           <div style={{ fontSize: 48, fontWeight: 900, marginBottom: 20, color: '#00d4ff' }}>
-            ✦ Growth Auditor AI
+            ✦ Avditor Mvndi
           </div>
           <div style={{ fontSize: 80, fontWeight: 900, marginBottom: 20 }}>
             {domain}

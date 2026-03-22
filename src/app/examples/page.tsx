@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Case Studies",
-  description: "See how Growth Auditor AI decodes top brands with cosmic growth strategy.",
+  description: "See how Avditor Mvndi decodes top brands with cosmic growth strategy.",
 };
 
 export default function ExamplesPage() {

@@ -12,7 +12,7 @@ function getFromAddress(): string {
 }
 
 function getAppName(): string {
-  return getConfig("appName") || "Growth Auditor";
+  return getConfig("appName") || "Avditor Mvndi";
 }
 
 export async function sendAuditCompleteEmail(

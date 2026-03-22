@@ -325,7 +325,7 @@ export default function AdminPage() {
     { key: "subscriptionPriceYearly", label: "Yearly Price ID", type: "text", placeholder: "price_...", description: "Stripe price ID for yearly subscription" },
     { key: "enableSubscriptions", label: "Enable Subscriptions", type: "select", options: ["true", "false"], description: "Show subscription options to users" },
     { key: "enableMonthlyAudits", label: "Enable Monthly Audits", type: "select", options: ["true", "false"], description: "Run automatic monthly re-audits for subscribers" },
-    { key: "appName", label: "App Name", type: "text", placeholder: "Growth Auditor", description: "Your application's name" },
+    { key: "appName", label: "App Name", type: "text", placeholder: "Avditor Mvndi", description: "Your application's name" },
     { key: "appTagline", label: "App Tagline", type: "text", placeholder: "Cosmic Strategy & Digital Alignment", description: "Your application's tagline" },
     { key: "primaryColor", label: "Primary Color", type: "text", placeholder: "#7000ff", description: "Main brand color (hex)" },
     { key: "accentColor", label: "Accent Color", type: "text", placeholder: "#00d4ff", description: "Secondary brand color (hex)" },
@@ -343,7 +343,7 @@ export default function AdminPage() {
           <span aria-hidden="true">✦</span>
           Command Center
         </div>
-        <h1>Growth Auditor Admin</h1>
+        <h1>Avditor Mvndi Admin</h1>
         <p>Configure, manage, and monitor your deployment.</p>
       </div>
 

@@ -40,7 +40,7 @@ export async function POST(req: Request) {
         if (isSubscription) {
           await updateSubscription(email, "pro", "active");
           await resend.emails.send({
-            from: "Growth Auditor <hello@growthauditor.ai>",
+            from: "Avditor Mvndi <hello@growthauditor.ai>",
             to: email,
             subject: "Your Monthly Alignment is Active ✦",
             html: `
@@ -48,12 +48,12 @@ export async function POST(req: Request) {
               <p>Your subscription is now active. Every month, you'll receive a fresh Cosmic Delta Report showing how your scores have evolved.</p>
               <p>The first re-audit will run on the 1st of next month.</p>
               <p>Stay cosmic,</p>
-              <p>The Growth Auditor Team</p>
+              <p>The Avditor Mvndi Team</p>
             `,
           });
         } else {
           await resend.emails.send({
-            from: "Growth Auditor <hello@growthauditor.ai>",
+            from: "Avditor Mvndi <hello@growthauditor.ai>",
             to: email,
             subject: "Your Manifestation Path is Confirmed ✦",
             html: `
@@ -61,7 +61,7 @@ export async function POST(req: Request) {
               <p>You have successfully aligned with Path ${pathNumber}.</p>
               <p>Our team (or your new templates) will be in touch shortly to begin the execution phase.</p>
               <p>Stay cosmic,</p>
-              <p>The Growth Auditor Team</p>
+              <p>The Avditor Mvndi Team</p>
             `,
           });
         }

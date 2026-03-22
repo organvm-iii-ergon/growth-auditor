@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "API Documentation",
-  description: "Growth Auditor AI API reference for developers.",
+  description: "Avditor Mvndi API reference for developers.",
 };
 
 export default function DocsPage() {
@@ -10,14 +10,14 @@ export default function DocsPage() {
     <main className="main">
       <div className="hero" style={{ marginBottom: "2rem" }}>
         <h1 style={{ fontSize: "clamp(2rem, 5vw, 3rem)" }}>API Documentation</h1>
-        <p>Integrate Growth Auditor AI into your applications with our REST API.</p>
+        <p>Integrate Avditor Mvndi into your applications with our REST API.</p>
       </div>
 
       {/* Introduction */}
       <section style={sectionStyle}>
         <h2 style={h2Style}>Introduction</h2>
         <p style={pStyle}>
-          The Growth Auditor API provides programmatic access to AI-powered growth audits.
+          The Avditor Mvndi API provides programmatic access to AI-powered growth audits.
           Generate audits, stream results in real-time, manage history, and capture leads.
         </p>
         <div style={infoBoxStyle}>
