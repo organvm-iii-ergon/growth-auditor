@@ -111,20 +111,19 @@ export default function HomePage() {
           ))}
         </div>
 
-        {/* FORM CARD — separate glass panel */}
+        {/* CTA / FORM */}
+        {!showForm ? (
+          <div style={{ textAlign: "center", marginBottom: "2rem" }}>
+            <button
+              className="btn"
+              style={{ width: "auto", padding: "0.9rem 2.5rem", fontSize: "1rem", borderRadius: "100px", background: "var(--ocean-gradient)" }}
+              onClick={() => setShowForm(true)}
+            >
+              Initiate Alignment
+            </button>
+          </div>
+        ) : (
         <div className="card" style={{ borderRadius: "20px", textAlign: "left" }}>
-          {!showForm ? (
-            <div style={{ textAlign: "center", padding: "1.5rem 1rem" }}>
-              <button
-                className="btn"
-                style={{ width: "auto", padding: "1rem 3rem", fontSize: "1rem", borderRadius: "100px", background: "var(--ocean-gradient)" }}
-                onClick={() => setShowForm(true)}
-              >
-                Initiate Alignment
-              </button>
-              <p style={{ marginTop: "0.75rem", fontSize: "0.75rem", color: "var(--text-muted)", opacity: 0.5 }}>Enter a URL to receive your cosmic growth audit</p>
-            </div>
-          ) : (
             <div style={{ animation: "fadeIn 0.4s ease-out" }}>
               <form onSubmit={handleSubmit}>
                 <AuditPresets onSelect={(preset) => setFormData({ ...formData, ...preset })} />
@@ -155,8 +154,8 @@ export default function HomePage() {
                 <button type="button" className="btn btn-secondary" style={{ marginTop: "0.75rem", opacity: 0.6 }} onClick={() => setShowForm(false)}>Cancel</button>
               </form>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </main>
   );

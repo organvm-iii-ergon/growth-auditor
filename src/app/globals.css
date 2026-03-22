@@ -4,10 +4,10 @@
   --primary: #0070f3;
   --secondary: #00d4ff;
   --accent: #7000ff;
-  --card-bg: rgba(8, 14, 30, 0.82);
-  --card-border: rgba(255, 255, 255, 0.06);
-  --glass-bg: rgba(8, 14, 30, 0.85);
-  --glass-border: rgba(255, 255, 255, 0.06);
+  --card-bg: rgba(6, 10, 22, 0.45);
+  --card-border: rgba(255, 255, 255, 0.1);
+  --glass-bg: rgba(6, 10, 22, 0.4);
+  --glass-border: rgba(255, 255, 255, 0.1);
   --text-muted: #8896b0;
   --ocean-gradient: linear-gradient(135deg, #0a1628 0%, #0070f3 50%, #7000ff 100%);
   --cosmic-glow: 0 0 24px rgba(0, 112, 243, 0.25);
