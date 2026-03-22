@@ -70,54 +70,59 @@ export default function HomePage() {
 
   return (
     <main className="main" style={{ padding: "0 1rem 3rem" }}>
-      <div style={{ maxWidth: "720px", margin: "0 auto", textAlign: "center" }}>
+      <div style={{ maxWidth: "900px", margin: "0 auto" }}>
 
-        <h1 style={{ fontSize: "clamp(2.2rem, 8vw, 4.5rem)", marginBottom: "0.5rem", letterSpacing: "-0.06em", fontWeight: 900, lineHeight: 1 }}>
-          Digital <span style={{ background: "var(--ocean-gradient)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Alignment</span>
-        </h1>
+        {/* HERO — text floats directly on the shader */}
+        <div style={{ textAlign: "center", marginBottom: "2.5rem" }}>
+          <h1 style={{ fontSize: "clamp(2rem, 7vw, 3.8rem)", marginBottom: "0.5rem", letterSpacing: "-0.06em", fontWeight: 900, lineHeight: 1 }}>
+            Digital <span style={{ background: "var(--ocean-gradient)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Alignment</span>
+          </h1>
+          <p style={{ opacity: 0.45, fontSize: "0.9rem" }}>
+            AI-powered growth audits across four strategic pillars.
+          </p>
+        </div>
 
-        <p style={{ opacity: 0.5, fontSize: "0.95rem", marginBottom: "2rem" }}>
-          AI-powered growth audits across four strategic pillars.
-        </p>
-
-        {/* PILLARS — single row on desktop, 2x2 on mobile */}
+        {/* PILLAR CARDS — each its own glassmorphism panel */}
         <div style={{
           display: "grid",
           gridTemplateColumns: "repeat(4, 1fr)",
-          gap: "0.75rem",
-          marginBottom: "2rem"
+          gap: "1rem",
+          marginBottom: "1.5rem"
         }}>
           {PILLARS.map(p => (
-            <div key={p.name} style={{
+            <div key={p.name} className="card" style={{
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
-              gap: "0.4rem",
-              padding: "1rem 0.5rem",
-              background: "rgba(255,255,255,0.03)",
-              borderRadius: "12px",
-              border: "1px solid rgba(255,255,255,0.06)"
+              gap: "0.6rem",
+              padding: "1.5rem 0.75rem",
+              textAlign: "center",
+              borderColor: `${p.color}18`,
+              borderRadius: "16px",
+              transition: "border-color 0.3s, transform 0.3s",
             }}>
-              <div style={{ width: "36px", height: "36px" }}>
+              {/* Hollow icon — stroke only, background bleeds through */}
+              <div style={{ width: "44px", height: "44px", opacity: 0.85 }}>
                 <TransparentIcon type={p.icon} size="100%" />
               </div>
-              <div style={{ fontWeight: 800, fontSize: "0.6rem", textTransform: "uppercase", letterSpacing: "0.2em", color: p.color }}>{p.name}</div>
-              <div style={{ fontSize: "0.65rem", color: "var(--text-muted)", opacity: 0.7 }}>{p.desc}</div>
+              <div style={{ fontWeight: 800, fontSize: "0.65rem", textTransform: "uppercase", letterSpacing: "0.2em", color: p.color }}>{p.name}</div>
+              <div style={{ fontSize: "0.7rem", color: "var(--text-muted)", opacity: 0.6, lineHeight: 1.4 }}>{p.desc}</div>
             </div>
           ))}
         </div>
 
-        {/* FORM AREA */}
+        {/* FORM CARD — separate glass panel */}
         <div className="card" style={{ borderRadius: "20px", textAlign: "left" }}>
           {!showForm ? (
-            <div style={{ textAlign: "center", padding: "2rem 1rem" }}>
+            <div style={{ textAlign: "center", padding: "1.5rem 1rem" }}>
               <button
                 className="btn"
-                style={{ width: "auto", padding: "1rem 3rem", fontSize: "1.05rem", borderRadius: "100px", background: "var(--ocean-gradient)" }}
+                style={{ width: "auto", padding: "1rem 3rem", fontSize: "1rem", borderRadius: "100px", background: "var(--ocean-gradient)" }}
                 onClick={() => setShowForm(true)}
               >
                 Initiate Alignment
               </button>
+              <p style={{ marginTop: "0.75rem", fontSize: "0.75rem", color: "var(--text-muted)", opacity: 0.5 }}>Enter a URL to receive your cosmic growth audit</p>
             </div>
           ) : (
             <div style={{ animation: "fadeIn 0.4s ease-out" }}>
