@@ -7,7 +7,7 @@ describe("config lib", () => {
   });
 
   it("returns default value for known key", () => {
-    expect(getConfig("appName")).toBe("Growth Auditor");
+    expect(getConfig("appName")).toBe("Avditor Mvndi");
   });
 
   it("returns null for unknown key", () => {
@@ -25,7 +25,7 @@ describe("config lib", () => {
 
   it("getAllConfig returns all defaults", () => {
     const config = getAllConfig();
-    expect(config.appName).toBe("Growth Auditor");
+    expect(config.appName).toBe("Avditor Mvndi");
     expect(config.primaryColor).toBe("#7000ff");
     expect(config.accentColor).toBe("#00d4ff");
   });
@@ -38,11 +38,11 @@ describe("config lib", () => {
 
   it("setConfig is a no-op in env-var mode", () => {
     setConfig("appName", "New Name");
-    expect(getConfig("appName")).toBe("Growth Auditor");
+    expect(getConfig("appName")).toBe("Avditor Mvndi");
   });
 
   it("deleteConfig is a no-op in env-var mode", () => {
     deleteConfig("appName");
-    expect(getConfig("appName")).toBe("Growth Auditor");
+    expect(getConfig("appName")).toBe("Avditor Mvndi");
   });
 });

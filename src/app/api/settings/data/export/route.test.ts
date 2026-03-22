@@ -24,7 +24,7 @@ describe("Data Export API", () => {
     const res = await GET();
     expect(res.status).toBe(200);
     expect(res.headers.get("Content-Type")).toBe("application/json");
-    expect(res.headers.get("Content-Disposition")).toContain(`growth-auditor-data-${mockEmail}.json`);
+    expect(res.headers.get("Content-Disposition")).toContain(`${mockEmail}.json`);
     
     const data = await res.json();
     expect(data.user.email).toBe(mockEmail);

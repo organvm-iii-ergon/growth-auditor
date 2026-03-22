@@ -48,8 +48,10 @@ const PILLAR_GRADIENTS: Partial<Record<IconType, [string, string]>> = {
   neptune: ["#448aff", "#82b1ff"],
 };
 
+let gradientCounter = 0;
+
 export default function CosmicIcon({ type, size = "100%", className, style, color }: CosmicIconProps) {
-  const gradientId = `gradient-${type}-${Math.random().toString(36).slice(2, 6)}`;
+  const gradientId = `gradient-${type}-${++gradientCounter}`;
   const gradient = PILLAR_GRADIENTS[type];
   const useGradient = gradient && !color;
 
