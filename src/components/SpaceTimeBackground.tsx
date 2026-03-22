@@ -4,18 +4,12 @@ import React, { useEffect, useRef, useCallback } from "react";
 
 const VERT = `attribute vec2 a_position;void main(){gl_Position=vec4(a_position,0.,1.);}`;
 
-// ═══════════════════════════════════════════════════════════════
-// STARGATE + WORMHOLE SHADER
-// Mode A: 2001 slit-scan — violent radial rays, grid striations
-// Mode B: Interstellar — dense churning fluid dynamics
-// Both coexist, blended by depth and time
-// ═══════════════════════════════════════════════════════════════
 const FRAG = `
 precision highp float;
 uniform float u_time;
 uniform vec2 u_resolution;
-uniform vec2 u_mouse;
-uniform vec3 u_orientation;
+uniform vec2 u_touch;
+uniform vec3 u_gyro;        // DOMINANT: alpha(compass), beta(tilt fwd/back), gamma(tilt L/R)
 uniform float u_lat,u_lon,u_hour,u_speed;
 
 float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
@@ -28,19 +22,16 @@ float fbm(vec2 p){
   for(int i=0;i<7;i++){v+=a*noise(p);p=r*p*2.1;a*=.48;}
   return v;
 }
-// Domain warped FBM — creates the churning fluid look
 float warpedFbm(vec2 p,float t){
-  vec2 q=vec2(fbm(p+vec2(0.,0.)),fbm(p+vec2(5.2,1.3)));
+  vec2 q=vec2(fbm(p),fbm(p+vec2(5.2,1.3)));
   vec2 r=vec2(fbm(p+4.*q+vec2(1.7+t*.05,9.2)),fbm(p+4.*q+vec2(8.3+t*.03,2.8)));
   return fbm(p+4.*r);
 }
-
 vec3 hsv2rgb(vec3 c){
   vec4 K=vec4(1.,2./3.,1./3.,3.);
   vec3 p=abs(fract(c.xxx+K.xyz)*6.-K.www);
   return c.z*mix(K.xxx,clamp(p-K.xxx,0.,1.),c.y);
 }
-
 vec3 todPalette(float h){
   if(h<5.)return vec3(.72,.9,.5);
   if(h<8.)return vec3(.06,.95,.8);
@@ -53,119 +44,100 @@ void main(){
   vec2 uv=(gl_FragCoord.xy-.5*u_resolution)/min(u_resolution.x,u_resolution.y);
   float t=u_time*u_speed;
 
-  // Sensor warps
-  uv+=vec2(u_orientation.z*.003,u_orientation.y*.002);
-  vec2 mUV=(u_mouse-.5)*2.;
-  float mD=length(uv-mUV);
-  uv+=(uv-mUV)*(.08/(mD+.5))*.06;
+  // ═══ GYROSCOPE — PRIMARY INTERACTION ═══
+  // gamma: left/right tilt (-90 to 90) → shifts vanishing point horizontally
+  // beta: front/back tilt (-180 to 180) → shifts vanishing point vertically + warps depth
+  // alpha: compass heading (0-360) → rotates the entire tunnel
+  float gyroX = u_gyro.z / 30.;     // gamma → strong horizontal shift
+  float gyroY = u_gyro.y / 50.;     // beta → vertical shift
+  float gyroRot = u_gyro.x / 180. * 3.14159; // alpha → full rotation mapped to PI
 
-  float lonI=u_lon/180.;
-  float latI=u_lat/90.;
+  // Shift the vanishing point based on how user holds the phone
+  uv += vec2(gyroX, gyroY);
 
-  float angle=atan(uv.y,uv.x)+lonI*.3;
-  float radius=length(uv);
-  float depth=.5/(radius+.008);
+  // Touch/mouse — secondary, subtle
+  vec2 tUV = (u_touch - .5) * 2.;
+  float tD = length(uv - tUV);
+  uv += (uv - tUV) * (.05 / (tD + .6)) * .04;
 
-  vec3 tod=todPalette(u_hour);
-  vec3 color=vec3(0.);
+  float lonI = u_lon / 180.;
+  float latI = u_lat / 90.;
 
-  // ════════════════════════════════════════
-  // MODE A: 2001 STARGATE — RADIAL LIGHT RAYS
-  // ════════════════════════════════════════
+  // Gyroscope rotates the tunnel angle
+  float angle = atan(uv.y, uv.x) + gyroRot + lonI * .3;
+  float radius = length(uv);
+  float depth = .5 / (radius + .008);
 
-  // Sharp radial rays from center — the slit-scan photography effect
-  float numRays=12.;
-  float rayAngle=angle*numRays;
-  // Sharp rays with pow() for intensity falloff
-  float rays=pow(abs(sin(rayAngle+t*.3)),8.)*.7;
-  rays+=pow(abs(sin(rayAngle*2.3+t*.5+1.)),12.)*.4;
-  rays+=pow(abs(sin(rayAngle*.7-t*.2+3.)),6.)*.3;
+  // Beta tilt warps perceived depth — tilt forward = deeper, back = shallower
+  depth *= 1. + u_gyro.y * .005;
 
-  // Motion blur streaks — radial lines stretching from center
-  float streak=pow(max(0.,1.-radius*1.2),.3);
-  rays*=streak;
+  vec3 tod = todPalette(u_hour);
+  vec3 color = vec3(0.);
 
-  // Grid/venetian-blind striations across the rays
-  float grid=abs(sin(depth*20.+t*1.5))*.5+.5;
-  grid*=abs(sin(depth*8.+angle*3.+t*.8))*.5+.5;
-  rays*=(.5+grid*.5);
+  // ═══ STARGATE RADIAL RAYS ═══
+  float numRays = 12.;
+  float rayAngle = angle * numRays;
+  float rays = pow(abs(sin(rayAngle + t * .3)), 8.) * .7;
+  rays += pow(abs(sin(rayAngle * 2.3 + t * .5 + 1.)), 12.) * .4;
+  rays += pow(abs(sin(rayAngle * .7 - t * .2 + 3.)), 6.) * .3;
 
-  // Color: each ray gets its own hue based on angle
-  float rayHue=fract(angle/6.283+tod.x+depth*.03);
-  vec3 rayColor=hsv2rgb(vec3(rayHue,tod.y,rays*tod.z));
+  float streak = pow(max(0., 1. - radius * 1.2), .3);
+  rays *= streak;
 
-  // Extra saturated color bands at different angles
-  float band1=pow(abs(sin(angle*1.+.5)),20.)*smoothstep(.5,.0,radius);
-  float band2=pow(abs(sin(angle*1.+2.1)),20.)*smoothstep(.5,.0,radius);
-  float band3=pow(abs(sin(angle*1.+3.7)),20.)*smoothstep(.5,.0,radius);
-  rayColor+=hsv2rgb(vec3(fract(tod.x+.0),1.,band1*1.5));
-  rayColor+=hsv2rgb(vec3(fract(tod.x+.33),1.,band2*1.2));
-  rayColor+=hsv2rgb(vec3(fract(tod.x+.66),1.,band3*1.));
+  float grid = abs(sin(depth * 20. + t * 1.5)) * .5 + .5;
+  grid *= abs(sin(depth * 8. + angle * 3. + t * .8)) * .5 + .5;
+  rays *= (.5 + grid * .5);
 
-  color+=rayColor;
+  // Gyro gamma shifts which ray colors are dominant
+  float rayHue = fract(angle / 6.283 + tod.x + depth * .03 + gyroX * .1);
+  vec3 rayColor = hsv2rgb(vec3(rayHue, tod.y, rays * tod.z));
 
-  // ════════════════════════════════════════
-  // MODE B: INTERSTELLAR — CHURNING FLUID
-  // ════════════════════════════════════════
+  // Color bands — position influenced by gyroscope
+  float band1 = pow(abs(sin(angle * 1. + .5 + gyroRot)), 20.) * smoothstep(.5, .0, radius);
+  float band2 = pow(abs(sin(angle * 1. + 2.1 + gyroRot)), 20.) * smoothstep(.5, .0, radius);
+  float band3 = pow(abs(sin(angle * 1. + 3.7 + gyroRot)), 20.) * smoothstep(.5, .0, radius);
+  rayColor += hsv2rgb(vec3(fract(tod.x), 1., band1 * 1.5));
+  rayColor += hsv2rgb(vec3(fract(tod.x + .33), 1., band2 * 1.2));
+  rayColor += hsv2rgb(vec3(fract(tod.x + .66), 1., band3 * 1.));
 
-  // Domain-warped FBM creates dense turbulent fluid filling the frame
-  vec2 fluidCoord=uv*1.5+vec2(t*.02,t*.015);
-  float fluid=warpedFbm(fluidCoord,t);
-  float fluid2=warpedFbm(fluidCoord*1.3+vec2(3.1,7.2),t*.7);
+  color += rayColor;
 
-  // Fluid is most visible at mid-radius (surrounding the central rays)
-  float fluidMask=smoothstep(.05,.25,radius)*smoothstep(1.2,.4,radius);
+  // ═══ INTERSTELLAR CHURNING FLUID ═══
+  // Gyro tilts shift the fluid coordinates — tilting the phone stirs the fluid
+  vec2 fluidCoord = uv * 1.5 + vec2(t * .02 + gyroX * .3, t * .015 + gyroY * .2);
+  float fluid = warpedFbm(fluidCoord, t);
+  float fluid2 = warpedFbm(fluidCoord * 1.3 + vec2(3.1, 7.2), t * .7);
 
-  // Fluid color — golden/amber dominant (like Interstellar wormhole)
-  float fluidHue=fract(tod.x-.05+fluid*.15+latI*.05);
-  float fluidSat=.7+fluid2*.3;
-  float fluidVal=fluid*fluidMask*1.2*tod.z;
-  // Internal luminosity — bright swirls within the fluid
-  fluidVal+=pow(fluid2,.5)*fluidMask*.4;
+  float fluidMask = smoothstep(.05, .25, radius) * smoothstep(1.2, .4, radius);
 
-  vec3 fluidColor=hsv2rgb(vec3(fluidHue,fluidSat*tod.y,fluidVal));
+  float fluidHue = fract(tod.x - .05 + fluid * .15 + latI * .05);
+  float fluidVal = fluid * fluidMask * 1.2 * tod.z + pow(fluid2, .5) * fluidMask * .4;
+  vec3 fluidColor = hsv2rgb(vec3(fluidHue, (.7 + fluid2 * .3) * tod.y, fluidVal));
 
-  // Green/amber swirls (like Project Hail Mary / Interstellar approach)
-  float swirl=warpedFbm(uv*2.+vec2(t*.01,-t*.02),t*1.2);
-  float swirlMask=smoothstep(.15,.5,radius)*smoothstep(1.5,.6,radius);
-  vec3 swirlColor=hsv2rgb(vec3(fract(tod.x+.1),.8,swirl*swirlMask*.6*tod.z));
+  float swirl = warpedFbm(uv * 2. + vec2(t * .01 + gyroX * .2, -t * .02 + gyroY * .15), t * 1.2);
+  float swirlMask = smoothstep(.15, .5, radius) * smoothstep(1.5, .6, radius);
+  vec3 swirlColor = hsv2rgb(vec3(fract(tod.x + .1), .8, swirl * swirlMask * .6 * tod.z));
 
-  color+=fluidColor+swirlColor;
+  color += fluidColor + swirlColor;
 
-  // ════════════════════════════════════════
-  // CENTRAL SINGULARITY — explosive white core
-  // ════════════════════════════════════════
-  float core=exp(-radius*8.)*1.5;
-  // Secondary glow ring
-  float ring=exp(-pow(radius-.08,2.)*200.)*.5;
-  color+=vec3(core+ring);
+  // ═══ CENTRAL SINGULARITY ═══
+  float core = exp(-radius * 8.) * 1.5;
+  float ring = exp(-pow(radius - .08, 2.) * 200.) * .5;
+  color += vec3(core + ring);
 
-  // ════════════════════════════════════════
-  // POST-PROCESSING
-  // ════════════════════════════════════════
+  // ═══ POST ═══
+  float ab = radius * .06;
+  color.r *= 1. + ab;
+  color.b *= 1. - ab * .5;
 
-  // Chromatic aberration — stronger than before
-  float ab=radius*.06;
-  vec3 shifted=color;
-  shifted.r*=1.+ab;
-  shifted.b*=1.-ab*.5;
-  color=mix(color,shifted,.8);
+  float lum = dot(color, vec3(.299, .587, .114));
+  color += color * smoothstep(.5, 1.5, lum) * .3;
 
-  // Bloom — brighten already-bright areas
-  float lum=dot(color,vec3(.299,.587,.114));
-  color+=color*smoothstep(.5,1.5,lum)*.3;
+  color *= 1. - smoothstep(.7, 1.8, radius) * .4;
+  color += (hash(gl_FragCoord.xy + t) - .5) * .015;
+  color *= 1. + latI * uv.y * .08;
 
-  // Vignette — less aggressive to keep edges vivid
-  color*=1.-smoothstep(.7,1.8,radius)*.4;
-
-  // Film grain
-  color+=(hash(gl_FragCoord.xy+t)-.5)*.015;
-
-  // Latitude color influence
-  color*=1.+latI*uv.y*.08;
-
-  // Clamp to prevent fireflies but keep HDR brightness
-  gl_FragColor=vec4(clamp(color,0.,3.),1.);
+  gl_FragColor = vec4(clamp(color, 0., 3.), 1.);
 }
 `;
 
@@ -173,26 +145,72 @@ export default function SpaceTimeBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rafRef = useRef(0);
   const startRef = useRef(Date.now());
-  const orientRef = useRef({ alpha: 0, beta: 0, gamma: 0 });
-  const mouseRef = useRef({ x: 0.5, y: 0.5 });
+  const gyroRef = useRef({ alpha: 0, beta: 0, gamma: 0 });
+  const touchRef = useRef({ x: 0.5, y: 0.5 });
   const geoRef = useRef({ lat: 0, lon: 0 });
   const speedRef = useRef(1.0);
   const hourRef = useRef(new Date().getHours() + new Date().getMinutes() / 60);
+  const permissionRequestedRef = useRef(false);
 
+  // ═══ GYROSCOPE — request permission on iOS, listen everywhere ═══
   useEffect(() => {
-    const h = (e: DeviceOrientationEvent) => { orientRef.current = { alpha: e.alpha || 0, beta: e.beta || 0, gamma: e.gamma || 0 }; };
-    window.addEventListener("deviceorientation", h);
-    return () => window.removeEventListener("deviceorientation", h);
+    const handler = (e: DeviceOrientationEvent) => {
+      gyroRef.current = { alpha: e.alpha || 0, beta: e.beta || 0, gamma: e.gamma || 0 };
+    };
+
+    const requestAndListen = async () => {
+      // iOS 13+ requires explicit permission request via user gesture
+      const DOE = DeviceOrientationEvent as unknown as { requestPermission?: () => Promise<string> };
+      if (DOE.requestPermission) {
+        try {
+          const perm = await DOE.requestPermission();
+          if (perm === "granted") {
+            window.addEventListener("deviceorientation", handler);
+          }
+        } catch {
+          // denied — fall back to desktop interaction
+        }
+      } else {
+        // Android / desktop — no permission needed
+        window.addEventListener("deviceorientation", handler);
+      }
+    };
+
+    // Request on first user interaction (required for iOS)
+    const onInteract = () => {
+      if (permissionRequestedRef.current) return;
+      permissionRequestedRef.current = true;
+      requestAndListen();
+    };
+
+    window.addEventListener("click", onInteract, { once: false });
+    window.addEventListener("touchstart", onInteract, { once: false });
+
+    // Also try immediately (works on Android without gesture)
+    requestAndListen();
+
+    return () => {
+      window.removeEventListener("deviceorientation", handler);
+      window.removeEventListener("click", onInteract);
+      window.removeEventListener("touchstart", onInteract);
+    };
   }, []);
 
+  // Touch position (mobile primary)
   useEffect(() => {
-    const m = (e: MouseEvent) => { mouseRef.current = { x: e.clientX / window.innerWidth, y: 1 - e.clientY / window.innerHeight }; };
-    const t = (e: TouchEvent) => { const tc = e.touches[0]; if (tc) mouseRef.current = { x: tc.clientX / window.innerWidth, y: 1 - tc.clientY / window.innerHeight }; };
-    window.addEventListener("mousemove", m);
-    window.addEventListener("touchmove", t, { passive: true });
-    return () => { window.removeEventListener("mousemove", m); window.removeEventListener("touchmove", t); };
+    const onTouch = (e: TouchEvent) => {
+      const tc = e.touches[0];
+      if (tc) touchRef.current = { x: tc.clientX / window.innerWidth, y: 1 - tc.clientY / window.innerHeight };
+    };
+    const onMouse = (e: MouseEvent) => {
+      touchRef.current = { x: e.clientX / window.innerWidth, y: 1 - e.clientY / window.innerHeight };
+    };
+    window.addEventListener("touchmove", onTouch, { passive: true });
+    window.addEventListener("mousemove", onMouse);
+    return () => { window.removeEventListener("touchmove", onTouch); window.removeEventListener("mousemove", onMouse); };
   }, []);
 
+  // Geolocation
   useEffect(() => {
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
@@ -202,17 +220,20 @@ export default function SpaceTimeBackground() {
     }
   }, []);
 
+  // Scroll speed
   useEffect(() => {
     const h = () => { const mx = document.documentElement.scrollHeight - window.innerHeight; speedRef.current = 0.6 + (mx > 0 ? (window.scrollY / mx) * 1.4 : 0); };
     window.addEventListener("scroll", h, { passive: true });
     return () => window.removeEventListener("scroll", h);
   }, []);
 
+  // Time of day
   useEffect(() => {
     const i = setInterval(() => { hourRef.current = new Date().getHours() + new Date().getMinutes() / 60; }, 60000);
     return () => clearInterval(i);
   }, []);
 
+  // ═══ WebGL ═══
   const initGL = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -240,7 +261,7 @@ export default function SpaceTimeBackground() {
     gl.enableVertexAttribArray(p); gl.vertexAttribPointer(p, 2, gl.FLOAT, false, 0, 0);
 
     const u = (n: string) => gl.getUniformLocation(prog, n);
-    const uTime=u("u_time"),uRes=u("u_resolution"),uMouse=u("u_mouse"),uOrient=u("u_orientation"),
+    const uTime=u("u_time"),uRes=u("u_resolution"),uTouch=u("u_touch"),uGyro=u("u_gyro"),
           uLat=u("u_lat"),uLon=u("u_lon"),uHour=u("u_hour"),uSpeed=u("u_speed");
 
     startRef.current = Date.now();
@@ -255,10 +276,10 @@ export default function SpaceTimeBackground() {
 
     const render = () => {
       const elapsed = (Date.now() - startRef.current) / 1000;
-      const o = orientRef.current, m = mouseRef.current, g = geoRef.current;
+      const g = gyroRef.current, tc = touchRef.current, geo = geoRef.current;
       gl.uniform1f(uTime, elapsed); gl.uniform2f(uRes, canvas.width, canvas.height);
-      gl.uniform2f(uMouse, m.x, m.y); gl.uniform3f(uOrient, o.alpha, o.beta, o.gamma);
-      gl.uniform1f(uLat, g.lat); gl.uniform1f(uLon, g.lon);
+      gl.uniform2f(uTouch, tc.x, tc.y); gl.uniform3f(uGyro, g.alpha, g.beta, g.gamma);
+      gl.uniform1f(uLat, geo.lat); gl.uniform1f(uLon, geo.lon);
       gl.uniform1f(uHour, hourRef.current); gl.uniform1f(uSpeed, speedRef.current);
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
       rafRef.current = requestAnimationFrame(render);
