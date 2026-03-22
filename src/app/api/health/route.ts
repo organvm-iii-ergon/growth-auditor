@@ -4,6 +4,7 @@ import { getAudits } from "@/lib/db";
 export async function GET() {
   const healthData = {
     status: "healthy",
+    version: "d45444b",
     timestamp: new Date().toISOString(),
     services: {
       database: "unknown",
