@@ -11,10 +11,14 @@ import { IconType } from "@/components/CosmicIcons";
 import type { TeamRecord } from "@/lib/db";
 
 const PILLARS: { name: string; icon: IconType; desc: string; color: string }[] = [
-  { name: "Mercury", icon: "mercury", desc: "Communication", color: "#7000ff" },
+  { name: "Sun", icon: "sun", desc: "Identity", color: "#ffa726" },
+  { name: "Moon", icon: "moon", desc: "Psychology", color: "#b0bec5" },
+  { name: "Mercury", icon: "mercury", desc: "Communication", color: "#9b6dff" },
   { name: "Venus", icon: "venus", desc: "Aesthetic", color: "#00d4ff" },
-  { name: "Mars", icon: "mars", desc: "Drive", color: "#ff0070" },
-  { name: "Saturn", icon: "saturn", desc: "Structure", color: "#ffcc00" },
+  { name: "Mars", icon: "mars", desc: "Drive", color: "#ff3080" },
+  { name: "Jupiter", icon: "jupiter", desc: "Reach", color: "#ff6e40" },
+  { name: "Saturn", icon: "saturn", desc: "Structure", color: "#e6b800" },
+  { name: "Neptune", icon: "neptune", desc: "Vision", color: "#448aff" },
 ];
 
 function getMoonPhase() {
@@ -86,7 +90,7 @@ export default function HomePage() {
         <div style={{
           display: "grid",
           gridTemplateColumns: "repeat(4, 1fr)",
-          gap: "1rem",
+          gap: "0.75rem",
           marginBottom: "1.5rem"
         }}>
           {PILLARS.map(p => (
